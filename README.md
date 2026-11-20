@@ -1,6 +1,6 @@
-# hackathon-gu-aura
+# bhaskar-gu-aura
 
-**Live:** https://hackathon-gu-aura.vercel.app
+**Live:** https://bhaskar-gu-aura.vercel.app
 
 Plain HTML, CSS and JavaScript (Vite), Supabase for data and auth, Vercel for hosting and server functions.
 

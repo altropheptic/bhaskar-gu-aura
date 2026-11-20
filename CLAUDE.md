@@ -5,9 +5,9 @@ Hackathon project (built 2026-11-21). The owner is most comfortable with plain H
 ## Stack
 
 - Vite 8, vanilla ES modules. Multi-page: every root `.html` file is a build entry (`vite.config.js`), and `vercel.json` turns on clean URLs.
-- Supabase project `hackathon-gu-aura`: ref `fkyozmweopldnopwdylm`, region ap-south-1 (Mumbai), org `altropheptic`. Linked locally (`supabase/`).
-- Vercel project `altropheptic/hackathon-gu-aura`, functions pinned to `bom1` (Mumbai) next to the database. Production: https://hackathon-gu-aura.vercel.app
-- GitHub: https://github.com/altropheptic/hackathon-gu-aura (public).
+- Supabase project ref `fkyozmweopldnopwdylm` (display name may still read `hackathon-gu-aura`), region ap-south-1 (Mumbai), org `altropheptic`. Linked locally (`supabase/`). The Supabase MCP connector is scoped to this account.
+- Vercel project `altropheptic/bhaskar-gu-aura`, functions pinned to `bom1` (Mumbai) next to the database. Production: https://bhaskar-gu-aura.vercel.app (the old hackathon-gu-aura.vercel.app 308-redirects there). Pushing to `main` auto-deploys.
+- GitHub: https://github.com/altropheptic/bhaskar-gu-aura (public).
 
 ## Rules
 
