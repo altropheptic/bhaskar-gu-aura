@@ -1,6 +1,17 @@
 # CLAUDE.md: rules for this project
 
-5-hour hackathon on 21 Nov 2026 (150 participants). An automated AI grader reviews the GitHub repo and the live URL and picks the Top 10 on 6 criteria: **Innovation and Originality, Problem-Solving Approach, Website Functionality, Effective Utilisation of AI Tools, Presentation and Explanation, Security**.
+5-hour hackathon on 21 Nov 2026 (150 participants). An automated AI grader reviews the GitHub repo and the live URL and picks the Top 10.
+
+## Evaluation criteria (every decision must serve these)
+
+1. Innovation and Originality
+2. Problem-Solving Approach
+3. Website Functionality
+4. Effective Utilisation of AI Tools
+5. Presentation and Explanation
+6. Security
+
+When planning or reviewing work, say which criteria it serves; the README gets one heading per criterion.
 
 ## Current state
 
