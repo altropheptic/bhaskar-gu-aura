@@ -2,9 +2,10 @@ node_modules
 dist
 .vercel
 
-# env files hold keys; only the example is committed
+# env files hold keys; only the example is committed (repo is public!)
 .env
 .env.*
+.env*.local
 !.env.example
 
 *.log
