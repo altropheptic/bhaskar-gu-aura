@@ -20,10 +20,20 @@
 import { json, rateLimited, readJson, requireUser } from './_lib.js';
 import { FORMS, MEALS, sanitizeAiMedicine } from '../js/medSchema.js';
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-/** Lighter model tried when the main one is overloaded (503/429) or too slow. */
-const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || 'gemini-flash-lite-latest';
-const RETRYABLE = new Set([429, 500, 502, 503, 504]);
+/**
+ * Light models on purpose: on the free tier, Gemini 3.5/3.1 Flash Lite allow
+ * 15 requests/min and 500/day, versus 5/min and 20/day for full Flash, and
+ * they answer faster. Parsing a prescription doesn't need a bigger model.
+ * Order: main model, a second Lite model, then the auto-updating Lite alias
+ * (in case a pinned model id is retired).
+ */
+const MODELS = [
+  process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
+  process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.1-flash-lite',
+  'gemini-flash-lite-latest',
+];
+/** Busy, rate-limited, unknown model id, or server error: try the next model. */
+const RETRYABLE = new Set([404, 429, 500, 502, 503, 504]);
 const MAX_BODY = 6_000_000; // ~4.5 MB image after base64
 const IMAGE_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -81,14 +91,14 @@ const EXPLAIN_SYSTEM = (lang) => [
 ].join(' ');
 
 /**
- * Call Gemini, falling back to a lighter model when the main one is busy.
- * Why: in testing, Gemini's main Flash model sometimes answered 503 ("high
- * demand") or took over 45 s. Elders shouldn't wait or see a failure, so each
- * attempt has its own short timeout and a busy/slow model triggers one retry.
+ * Call Gemini, moving to the next model when one is busy, slow or unavailable.
+ * Why: in testing, full Gemini Flash answered 503 ("high demand") or took
+ * over 45 s. Elders shouldn't wait or see a failure, so each attempt has its
+ * own short timeout (total stays under the browser's 50 s wait).
  * @param {{ system: string, parts: any[], schema?: any, maxTokens: number }} opts
  */
 async function gemini(opts) {
-  const attempts = [[MODEL, 22_000], [FALLBACK_MODEL, 20_000]];
+  const attempts = [[MODELS[0], 18_000], [MODELS[1], 15_000], [MODELS[2], 12_000]];
   let lastErr;
   for (const [model, timeoutMs] of attempts) {
     try {

@@ -6,7 +6,7 @@ Dawai Dost uses AI in two places: **inside the product** (Gemini, ElevenLabs) an
 
 | Feature | Model / service | Guardrails | Fallback |
 |---|---|---|---|
-| Prescription text to schedule | Google Gemini (`gemini-flash-latest`, set by `GEMINI_MODEL`) | JSON response schema with enums; server + browser sanitiser; DB constraints; a person confirms | Offline rule-based `1-0-1` parser |
+| Prescription text to schedule | Google Gemini 3.5 Flash Lite (`GEMINI_MODEL`; falls back to 3.1 Flash Lite). Lite models chosen for the free tier: 15 req/min and 500/day | JSON response schema with enums; server + browser sanitiser; DB constraints; a person confirms | Offline rule-based `1-0-1` parser |
 | Prescription / strip photo to schedule | Gemini (multimodal) | Same as above; image type and size limits; downscaled in the browser | Type it in |
 | "What is this medicine for?" | Gemini | Simple language, no dosing advice, ends with "follow your doctor"; markdown stripped | "Ask your pharmacist" |
 | Spoken reminders (Hindi / English) | ElevenLabs `eleven_multilingual_v2` | Server-side sentence template; validated fields only | Browser `speechSynthesis` |

@@ -55,7 +55,7 @@ When planning or reviewing work, say which criteria it serves; the README gets o
 - Supabase: project `bhaskar-gu-aura`, ref `fkyozmweopldnopwdylm`, Mumbai, linked locally (`supabase/`). Use the **Supabase MCP** for schema work (`apply_migration`, `execute_sql`, `get_advisors`).
 - Vercel: project `bhaskar-gu-aura` (team `altropheptic`), functions pinned to `bom1` (Mumbai); `vercel.json` sets clean URLs and security headers (CSP allows only self + our Supabase project). Use the **Vercel MCP** for deployments, logs and env vars; the CLI is linked too.
 - Env vars live in Vercel; `vercel env pull .env.local` locally. Browser-safe: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`. Server-only (`/api`): `SUPABASE_URL`, `SUPABASE_SECRET_KEY`.
-- **AI APIs (owner-approved):** Google Gemini in `/api/ai.js` (`GEMINI_API_KEY`, model `GEMINI_MODEL`, default `gemini-flash-latest`) and ElevenLabs in `/api/tts.js` (`ELEVENLABS_API_KEY`, optional `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL`). Browser talks only to our `/api`, which requires a Supabase session JWT; every AI feature has a non-AI fallback.
+- **AI APIs (owner-approved):** Google Gemini in `/api/ai.js` (`GEMINI_API_KEY`, model `GEMINI_MODEL`, default `gemini-3.5-flash-lite`, fallback `gemini-3.1-flash-lite`) and ElevenLabs in `/api/tts.js` (`ELEVENLABS_API_KEY`, optional `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL`). Browser talks only to our `/api`, which requires a Supabase session JWT; every AI feature has a non-AI fallback.
 - A full rubric-oriented foundation (modular JS, CSS, docs, 404, schema template) was drafted and then removed on 20 Nov; it can be restored from commit `5d2f18a` if the owner wants it.
 
 ## Stack (non-negotiable)
