@@ -4,8 +4,8 @@
  *   cloud : Supabase (silent anonymous account, protected by RLS). The default.
  *   local : localStorage on this device. Used automatically if Supabase is down,
  *           so the app never stops working for an elder at dose time.
- *   demo  : in-memory sample data for "Try Instant Demo". Instant, offline-safe,
- *           and it never touches anyone's real list.
+ *   demo  : in-memory sample data (kept as a last resort; the app now saves the
+ *           sample family into the real account with importAll instead).
  *
  * Why one interface: views never care where data lives, and the fallback is just
  * a different backend object rather than if/else branches all over the UI.
@@ -18,6 +18,8 @@ const PROFILE_COLS = ['name', 'age', 'language', 'blood_group', 'allergies', 'co
   'wake_time', 'breakfast_time', 'lunch_time', 'dinner_time', 'bed_time'];
 const MEDICINE_COLS = ['profile_id', 'name', 'generic_name', 'dosage', 'form', 'color', 'shape', 'meal', 'times', 'slots', 'days', 'dose_qty',
   'stock', 'refill_at', 'start_date', 'end_date', 'active', 'notes', 'kept_at', 'doctor', 'photo'];
+
+const LOG_COLS = ['id', 'medicine_id', 'scheduled_for', 'status', 'logged_at'];
 
 /** Thrown when a scheduled dose has already been logged (the double-dose guard). */
 export class DuplicateDoseError extends Error {
@@ -156,6 +158,14 @@ class MemoryBackend {
     this.save();
   }
 
+  /** Bulk-load a starter set (the sample family) into this device's list. */
+  async importAll({ profiles, medicines, logs }) {
+    this.data.profiles.push(...profiles.map((p) => ({ id: p.id, created_at: new Date().toISOString(), ...pick(p, PROFILE_COLS) })));
+    this.data.medicines.push(...medicines.map((m) => ({ id: m.id, created_at: new Date().toISOString(), ...pick(m, MEDICINE_COLS) })));
+    this.data.logs.push(...logs.map((l) => pick(l, LOG_COLS)));
+    this.save();
+  }
+
   async listLinks(profileId) { return this.data.links.filter((l) => l.profile_id === profileId); }
   async createLink() { throw new Error('Caregiver links need the online (cloud) mode.'); }
   async revokeLink(id) {
@@ -175,6 +185,30 @@ class CloudBackend {
     console.error('[store] Supabase error:', error.code, error.message);
     if (error.code === '23505') throw new DuplicateDoseError();
     throw new Error('Could not save. Please check your internet connection and try again.');
+  }
+
+  /**
+   * Bulk-load a starter set (the sample family) into the signed-in account.
+   * Rows are inserted in order (people, then medicines, then history) so every
+   * foreign key and RLS ownership check passes; history goes in chunks.
+   */
+  async importAll({ profiles, medicines, logs }) {
+    const stamp = Date.now();
+    // created_at keeps the family in a stable order (Dadi first).
+    let r = await supabase.from('profiles').insert(profiles.map((p, i) => ({ id: p.id, created_at: new Date(stamp + i).toISOString(), ...pick(p, PROFILE_COLS) })));
+    CloudBackend.check(r.error);
+    try {
+      r = await supabase.from('medicines').insert(medicines.map((m, i) => ({ id: m.id, created_at: new Date(stamp + i).toISOString(), ...pick(m, MEDICINE_COLS) })));
+      CloudBackend.check(r.error);
+      for (let i = 0; i < logs.length; i += 500) {
+        r = await supabase.from('dose_logs').insert(logs.slice(i, i + 500).map((l) => pick(l, LOG_COLS)));
+        CloudBackend.check(r.error);
+      }
+    } catch (err) {
+      // Never leave a half-made family behind: removing the people cascades to the rest.
+      await supabase.from('profiles').delete().in('id', profiles.map((p) => p.id));
+      throw err;
+    }
   }
 
   async listProfiles() {
@@ -338,6 +372,7 @@ export const store = {
   listLogs: (...a) => store.backend.listLogs(...a),
   addLog: (...a) => store.backend.addLog(...a),
   deleteLog: (...a) => store.backend.deleteLog(...a),
+  importAll: (...a) => store.backend.importAll(...a),
   listLinks: (...a) => store.backend.listLinks(...a),
   createLink: (...a) => store.backend.createLink(...a),
   revokeLink: (...a) => store.backend.revokeLink(...a),

@@ -34,7 +34,7 @@ function familyCard(profile) {
   wa.addEventListener('click', () => shareOnWhatsApp(todaySummaryText(profile, todayDoses())));
 
   if (store.mode !== 'cloud') {
-    const why = store.mode === 'demo' ? 'Live links are off in the demo.' : 'Live links need internet.';
+    const why = 'Live links need internet.';
     return card('family', 'Family', `Share today's doses. ${why}`, [], [wa]);
   }
 

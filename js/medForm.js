@@ -2,8 +2,9 @@
  * Add / edit medicine dialog.
  *
  * Three ways in, fastest first:
- *   1. Quick add: type it like the prescription ("Metformin 500mg 1-0-1 after
- *      food 30 days") and let Gemini fill the form, or use the offline parser.
+ *   1. Quick fill: type it like the prescription ("Metformin 500mg 1-0-1 after
+ *      food 30 days"). The offline 1-0-1 reader answers instantly; anything it
+ *      can't read goes to Gemini.
  *   2. Scan: photograph the prescription; Gemini reads it (and the doctor's name).
  *   3. Fill the form by hand. Times are picked as routine chips ("Breakfast",
  *      "Bedtime") instead of clock pickers, which older adults find hard.
@@ -254,19 +255,17 @@ export function openMedicineDialog(existing) {
       attrs: { id: 'quick-text', rows: 2, maxlength: 1000, placeholder: 'Metformin 500mg 1-0-1 after food 30 days' },
     });
     const results = el('div', { attrs: { 'aria-live': 'polite' } });
-    const aiBtn = el('button', { className: 'btn btn--primary', attrs: { type: 'button' } }, [icon('rx'), 'Fill with AI']);
-    const ruleBtn = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, ['Quick fill']);
+    const ruleBtn = el('button', { className: 'btn btn--primary', attrs: { type: 'button' } }, [icon('rx'), 'Quick fill']);
     const scanIn = el('input', { attrs: { type: 'file', accept: 'image/*', capture: 'environment', 'aria-label': 'Scan a prescription photo' } });
     const scanBtn = el('span', { className: 'btn btn--outline file-btn' }, [icon('camera'), 'Scan', scanIn]);
 
+    /** Instant, offline 1-0-1 reading. @returns {boolean} true when it understood the text */
     const useRules = () => {
       const { fields, understood } = parsePrescription(quickIn.value);
-      if (!fields.name && !fields.slots) {
-        results.replaceChildren(el('p', { className: 'field__hint', text: 'Not understood. Try "Name 500mg 1-0-1".' }));
-        return;
-      }
+      if (!fields.name || !fields.slots) return false;
       applyFields(fields);
       results.replaceChildren(el('p', { className: 'field__hint', text: `${understood.join(' · ')}. Check and save.` }));
+      return true;
     };
 
     /** Show AI results; one result fills the form, several get a pick list. */
@@ -289,17 +288,24 @@ export function openMedicineDialog(existing) {
       );
     };
 
-    ruleBtn.addEventListener('click', useRules);
-    aiBtn.addEventListener('click', async () => {
-      if (!quickIn.value.trim()) { quickIn.focus(); return; }
-      setLoading(aiBtn, true, 'Reading…');
+    // One button: the 1-0-1 reader answers instantly when it can; free-form
+    // text ("BP tablet morning, sugar tablet after dinner") goes to Gemini.
+    ruleBtn.addEventListener('click', async () => {
+      if (!quickIn.value.trim()) {
+        results.replaceChildren(el('p', { className: 'field__hint', text: 'Type the medicine first, e.g. "Metformin 500mg 1-0-1".' }));
+        quickIn.focus();
+        return;
+      }
+      if (useRules()) return;
+      setLoading(ruleBtn, true, 'Reading…');
       try {
         showAiResults(await parseTextWithAi(quickIn.value), 'text');
       } catch {
-        useRules();
-        results.prepend(el('p', { className: 'field__hint', text: 'AI unavailable, used quick fill.' }));
+        const { fields } = parsePrescription(quickIn.value);
+        if (fields.name || fields.slots) applyFields(fields);
+        results.replaceChildren(el('p', { className: 'field__hint', text: 'Could not read all of it. Try "Name 500mg 1-0-1".' }));
       } finally {
-        setLoading(aiBtn, false);
+        setLoading(ruleBtn, false);
       }
     });
     scanIn.addEventListener('change', async () => {
@@ -321,7 +327,7 @@ export function openMedicineDialog(existing) {
         el('span', { className: 'tag tag--lime', text: 'Gemini AI' }),
       ]),
       quickIn,
-      el('div', { className: 'btn-row' }, [aiBtn, ruleBtn, scanBtn]),
+      el('div', { className: 'btn-row' }, [ruleBtn, scanBtn]),
       results,
     ]);
   }

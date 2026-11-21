@@ -203,3 +203,16 @@ alter table public.medicines
 alter table public.medicines
   add column doctor text check (char_length(doctor) <= 60),
   add column photo  text check (photo is null or (char_length(photo) <= 90000 and photo ~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'));
+
+-- ---------------------------------------------------------------------------
+-- Migration: allow_bundled_sample_photos
+-- New accounts start with a sample family whose medicine photos are bundled
+-- same-origin files (/demo/<name>.jpg), so the photo check accepts that exact
+-- path shape as well as small data URLs.
+-- ---------------------------------------------------------------------------
+alter table public.medicines drop constraint medicines_photo_check;
+alter table public.medicines add constraint medicines_photo_check check (
+  photo is null
+  or photo ~ '^/demo/[a-z0-9-]{1,40}\.jpg$'
+  or (char_length(photo) <= 90000 and photo ~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$')
+);

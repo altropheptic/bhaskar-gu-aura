@@ -8,7 +8,7 @@ PromptWars × Code1 · PS02 *MediTrack: Smart Medicine Reminder* (Healthcare)
 ## Try it in 10 seconds
 
 1. Open the live app. There is no sign-up, login or password.
-2. Click **Try Instant Demo**. Four family members (Dadi, Nanaji, Papa, Maa) appear, with 18 medicines (most with real photos), routines, doctors and a month of history.
+2. Click **Get started**. There is no sign-up: a private account is created silently and starts with a sample family (Dadi, Nanaji, Papa, Maa), 18 medicines (most with real photos), routines, doctors and a month of history. It is a real account: every Taken, edit and new medicine is saved to the database.
 3. Wait about a minute. **An alarm rings for Dadi**: it chimes, speaks the reminder and shows the pill's colour and shape. Tap **I took it**.
 4. Explore the tabs:
    - **Medicines**: add one by typing `Metformin 500mg 1-0-1 after food 30 days`, or photograph a prescription.
@@ -18,7 +18,7 @@ PromptWars × Code1 · PS02 *MediTrack: Smart Medicine Reminder* (Healthcare)
 
 To start your own list, click **Start my own list**. Your data is private to your browser. **Log out** (sidebar, or Settings on phones) returns to the home page and keeps your list.
 
-Demo medicine photos are real, freely licensed photos from Wikimedia Commons; see [public/demo/CREDITS.md](public/demo/CREDITS.md).
+Sample medicine photos are real, freely licensed photos from Wikimedia Commons; see [public/demo/CREDITS.md](public/demo/CREDITS.md).
 
 ---
 
@@ -72,7 +72,7 @@ Sources:
 - **Progress:** 7- and 14-day adherence, streak, badges, 14-day grid per medicine, printable doctor report.
 - **Family & safety:** WhatsApp summary, caregiver link (create, copy, revoke), emergency card, `.ics` calendar alarms, voice test.
 - **Profiles:** several elders on one phone, each with their own voice language.
-- **Works offline and installs** (PWA). If Supabase is unreachable, the app falls back to on-device storage and shows a banner. The demo never needs the network.
+- **Works offline and installs** (PWA). If Supabase is unreachable, the app falls back to on-device storage and shows a banner. If the network is down on first open, the sample family is saved on the device instead.
 - Loading, empty and error states everywhere. Nothing fails silently.
 
 ## Effective Utilisation of AI Tools
@@ -88,7 +88,7 @@ Sources:
 
 ## Presentation and Explanation
 
-- The first screen explains the product and offers a one-click demo. The problem, solution, features and safety sections are static HTML, readable without JavaScript.
+- The first screen explains the product and opens the app in one click, already filled with a sample family. The problem, solution, features and safety sections are static HTML, readable without JavaScript.
 - Design system, built from top medication-app design references:
   - The next dose is the hero (huge time, glossy pill, one big "Taken" button), "Later today" sits in pastel cards tinted by each medicine's colour, and phones get a floating capsule tab bar.
   - Fonts: **Lexend** headings and **Atkinson Hyperlegible Next** body. The body font was built for low-vision readers.

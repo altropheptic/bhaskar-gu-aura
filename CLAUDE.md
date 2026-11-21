@@ -28,8 +28,9 @@ When planning or reviewing work, say which criteria it serves; the README gets o
 - Alarms: chime + ElevenLabs voice (Hindi/English, browser fallback), snooze, notifications, one-tap big mode.
 - Progress: ring, streak, 14-day grid, badges, doctor report.
 - Family & safety: reminder health check, daily routine, caregiver link (hashed token) + WhatsApp, emergency card.
-- Other: .ics calendar export, PWA, Log out (back to the landing; keeps the list; landing then says "Open my list").
-- Demo: 4 people (Dadi, Nanaji, Papa, Maa), 18 medicines, 30 days of history, 14 real Wikimedia Commons photos in `public/demo/` (see CREDITS.md; `DEMO_PHOTO_RE` allows `/demo/*.jpg`).
+- Other: .ics calendar export, PWA, bell = Alerts sheet (`js/notifications.js`: due/missed today + missed yesterday, refills, reminder setup), Log out (back to the landing; list stays saved; button then says "Open my list").
+- **One account only (owner, 21 Nov):** no separate demo mode, no "Exit demo". The landing's single "Get started" button opens the app; a brand-new anonymous account is seeded once with the sample family via `store.importAll(buildDemoData())` (4 people, 18 medicines, 30 days of history, 14 real Wikimedia Commons photos in `public/demo/`, CREDITS.md). Every tap after that is saved to Supabase (local fallback if offline). Migration `allow_bundled_sample_photos` lets `medicines.photo` hold `/demo/<name>.jpg`.
+- Add medicine: one "Quick fill" button (offline 1-0-1 reader first, Gemini for free text) + "Scan" (Gemini photo). The separate "Fill with AI" button was removed.
 
 **AI:** `/api/ai` uses free-tier Gemini Flash Lite (`gemini-3.5-flash-lite` → `gemini-3.1-flash-lite` → `gemini-flash-lite-latest`, short per-try timeouts) and requires a Supabase JWT. `/api/tts` = ElevenLabs `eleven_multilingual_v2`, server-built sentence template. `/api/caregiver` = SHA-256 token lookup.
 
@@ -47,7 +48,7 @@ When planning or reviewing work, say which criteria it serves; the README gets o
 - White cards with a soft shadow, 8px spacing scale, terse copy. Avoid AI-slop defaults (Inter/Poppins, purple gradients, icon libraries, emoji, sparkle icons).
 - Pills are glossy SVG renders (`#pg-hl`/`#pg-shade` gradients); keep caregiver.html's sprite in sync with index.html.
 
-**Supabase migrations applied:** `dawai_dost_initial_schema`, `routine_slots_and_place_cue`, `medicine_doctor_and_photo`. The security advisor is clean. Mirror any change in `supabase/schema.sql`.
+**Supabase migrations applied:** `dawai_dost_initial_schema`, `routine_slots_and_place_cue`, `medicine_doctor_and_photo`, `allow_bundled_sample_photos`. The security advisor is clean. Mirror any change in `supabase/schema.sql`.
 
 **Verified live:** cloud saving; Gemini parse + explain (~13 s); ElevenLabs Hindi/English (~12 s); caregiver link create/open/revoke; API guards (401/400/404); CSP intact; 390px layouts with no overflow.
 
