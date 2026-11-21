@@ -14,6 +14,11 @@ import { openProfileDialog } from './profileDialog.js';
 import { healthCard } from './reminderHealth.js';
 import { SLOTS, SLOT_LABEL, ROUTINE_FIELDS, routineOf } from './routine.js';
 
+/** Newest caregiver link, shown until the user leaves this screen. */
+let lastLink = null;
+/** Called when leaving the Family screen: the raw link is never kept longer. */
+export function forgetLastLink() { lastLink = null; }
+
 /** Shared card frame. */
 function card(iconName, title, line, body, actions) {
   return el('section', { className: 'card' }, [
@@ -36,26 +41,30 @@ function familyCard(profile) {
   const labelIn = el('input', { attrs: { id: 'cg-label', maxlength: 40, placeholder: 'Name, e.g. Priya', autocomplete: 'off', 'aria-label': 'Who is the link for' } });
   const create = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('link'), 'Create link']);
   const result = el('div', { className: 'stack', attrs: { 'aria-live': 'polite' } });
+  // The raw link exists only in memory (the database keeps a hash), so remember the
+  // newest one here; otherwise the refresh after saving would wipe it from screen.
+  if (lastLink && lastLink.profileId === profile.id) {
+    const { url } = lastLink;
+    const copy = el('button', { className: 'btn btn--sm btn--primary', text: 'Copy', attrs: { type: 'button' } });
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { showBanner('info', 'Select the link to copy it.'); }
+    });
+    const send = el('button', { className: 'btn btn--sm btn--outline', attrs: { type: 'button' } }, [icon('chat'), 'Send']);
+    send.addEventListener('click', () => shareOnWhatsApp(`${profile.name}'s medicines today (read-only): ${url}`));
+    result.append(
+      el('p', { className: 'share-url', text: url }),
+      el('p', { className: 'field__hint', text: 'Shown once. Save it now.' }),
+      el('div', { className: 'btn-row' }, [copy, send]),
+    );
+  }
   create.addEventListener('click', async () => {
     setLoading(create, true, 'Creating…');
     try {
       const { url } = await createCaregiverLink(profile.id, labelIn.value.trim() || 'Family');
-      const copy = el('button', { className: 'btn btn--sm btn--primary', text: 'Copy', attrs: { type: 'button' } });
-      copy.addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { showBanner('info', 'Select the link to copy it.'); }
-      });
-      const send = el('button', { className: 'btn btn--sm btn--outline', attrs: { type: 'button' } }, [icon('chat'), 'Send']);
-      send.addEventListener('click', () => shareOnWhatsApp(`${profile.name}'s medicines today (read-only): ${url}`));
-      result.replaceChildren(
-        el('p', { className: 'share-url', text: url }),
-        el('p', { className: 'field__hint', text: 'Shown once. Save it now.' }),
-        el('div', { className: 'btn-row' }, [copy, send]),
-      );
-      labelIn.value = '';
-      await loadProfileData();
+      lastLink = { profileId: profile.id, url };
+      await loadProfileData(); // re-renders this card with the link shown
     } catch (err) {
       showBanner('error', err.message);
-    } finally {
       setLoading(create, false);
     }
   });

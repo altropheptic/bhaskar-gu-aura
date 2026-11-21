@@ -20,7 +20,7 @@ import { buildDemoData } from './demoData.js';
 import { renderToday } from './todayView.js';
 import { renderMedicines } from './medicinesView.js';
 import { renderHistory } from './historyView.js';
-import { renderCare } from './careView.js';
+import { renderCare, forgetLastLink } from './careView.js';
 import { openProfileDialog } from './profileDialog.js';
 import { openMedicineDialog } from './medForm.js';
 import { startReminders, enableNotifications, testChime } from './reminders.js';
@@ -50,6 +50,7 @@ function render() {
 }
 
 function showTab(tab) {
+  if (state.tab === 'care' && tab !== 'care') forgetLastLink();
   state.tab = tab;
   document.querySelectorAll('.nav__item').forEach((t) => {
     if (t.dataset.tab === tab) t.setAttribute('aria-current', 'page');
