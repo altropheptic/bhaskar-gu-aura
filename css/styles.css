@@ -344,13 +344,10 @@ details summary { cursor: pointer; font-weight: 600; min-height: var(--tap); dis
 .steps li::before { content: counter(step); width: 40px; height: 40px; border-radius: 50%; background: var(--lime); display: grid; place-items: center; font-family: var(--font-head); font-weight: 700; }
 .steps h3 { font-size: 1.25rem; }
 .steps p { color: var(--muted); }
-.feature-grid { grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 36rem) { .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 62rem) { .feature-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.feature-grid li { background: var(--surface); border-radius: var(--r); padding: var(--s4); display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: var(--s3); row-gap: 2px; align-content: start; box-shadow: var(--shadow-sm); }
-.feature-grid li::before { content: ''; grid-row: 1 / span 2; width: 24px; height: 24px; border-radius: 50%; background: var(--lime) var(--tick) center / 14px no-repeat; }
-.feature-grid strong { font-weight: 700; line-height: 1.3; }
-.feature-grid span { color: var(--muted); font-size: 0.9rem; line-height: 1.4; }
+.feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 46rem) { .feature-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.feature-grid li { background: var(--surface); border-radius: var(--r); padding: var(--s4); font-weight: 600; min-height: 64px; display: flex; align-items: center; gap: var(--s3); box-shadow: var(--shadow-sm); }
+.feature-grid li::before { content: ''; width: 24px; height: 24px; flex: none; border-radius: 50%; background: var(--lime) var(--tick) center / 14px no-repeat; }
 /* What makes it different */
 .usps { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s4); grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 40rem) { .usps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
