@@ -82,7 +82,7 @@ function showApp() {
 }
 
 function showWelcome() {
-  document.querySelectorAll('[data-open-app]').forEach((b) => { b.textContent = 'Open my list'; });
+  document.querySelectorAll('[data-open-app]').forEach((b) => { b.textContent = 'View my medicines'; });
   $('#landing').hidden = false;
   $('#app').hidden = true;
   document.body.classList.remove('in-app');
@@ -93,7 +93,7 @@ function showWelcome() {
 /**
  * "Log out": leave the app and return to the home page. There is no password
  * (each browser has a private, invisible account), so the list stays saved and
- * "Open my list" brings it straight back.
+ * "View my medicines" brings it straight back.
  */
 function logOut() {
   document.querySelectorAll('dialog[open]').forEach((d) => d.close());
@@ -192,9 +192,9 @@ $('#profile-select').addEventListener('change', (e) => {
 
 /* ---------------- boot ---------------- */
 
-// A returning visitor sees "Open my list" on the home page.
+// A returning visitor sees "View my medicines" on the home page.
 ready.then(() => store.listProfiles()).then((people) => {
-  if (people.length) document.querySelectorAll('[data-open-app]').forEach((b) => { b.textContent = 'Open my list'; });
+  if (people.length) document.querySelectorAll('[data-open-app]').forEach((b) => { b.textContent = 'View my medicines'; });
 }).catch(() => {});
 
 // Installable / offline: register the service worker in production builds only
