@@ -3,13 +3,203 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bhaskar-gu-aura</title>
-    <meta name="description" content="Hackathon project. Building starts on 21 Nov 2026 once the problem statement is announced." />
+    <title>Dawai Dost · Simple medicine reminders for elders and families</title>
+    <meta
+      name="description"
+      content="Dawai Dost is a free, no-login medicine reminder for elderly people and their families. Organise every medicine, get spoken reminders in Hindi or English, prevent double doses, track adherence and share a live view with caregivers."
+    />
+    <meta name="theme-color" content="#3E6B48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
   </head>
   <body>
-    <main>
-      <h1>bhaskar-gu-aura</h1>
-      <p>Hackathon project. Building starts on 21 November 2026, once the problem statement is announced.</p>
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <!-- Inline SVG sprite: icons are referenced with <use href="#i-..."> so no icon font or CDN is needed. -->
+    <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="i-logo" viewBox="0 0 48 48"><rect x="4" y="16" width="40" height="16" rx="8" transform="rotate(-35 24 24)" fill="currentColor" stroke="none"/><path d="M17.4 33.4 30.6 14.6" fill="none" stroke-width="3" stroke-linecap="round"/></symbol>
+      <symbol id="i-pill-round" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="currentColor"/><path d="M8 16h16" fill="none"/></symbol>
+      <symbol id="i-pill-oval" viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="13" ry="8.5" fill="currentColor"/></symbol>
+      <symbol id="i-pill-capsule" viewBox="0 0 32 32"><g transform="rotate(-35 16 16)"><rect x="3" y="10" width="26" height="12" rx="6" fill="currentColor"/><path d="M16 10v12" fill="none"/></g></symbol>
+      <symbol id="i-pill-liquid" viewBox="0 0 32 32"><path d="M9.8 17h12.4v10a2 2 0 0 1-2 2h-8.4a2 2 0 0 1-2-2z" fill="currentColor" stroke="none"/><path d="M12 3h8v4l3 4v16a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2V11l3-4z" fill="none"/></symbol>
+      <symbol id="i-pill-other" viewBox="0 0 32 32"><rect x="6" y="6" width="20" height="20" rx="6" fill="currentColor"/></symbol>
+      <!-- Custom duotone set drawn for Dawai Dost: rounded 2px strokes + a soft tinted fill (no icon library, no emoji). -->
+      <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor" fill-opacity=".16"/><path d="M7 12.4l3.3 3.1L17.2 8.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-cross" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-skip" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor" fill-opacity=".14"/><path d="M8 12h8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24"><path d="M7 16.5V11a5 5 0 0 1 10 0v5.5" fill="currentColor" fill-opacity=".18" stroke="none"/><path d="M5 17.5h14M7 17V11a5 5 0 0 1 10 0v6M10.2 20.5a2 2 0 0 0 3.6 0M12 3.5V6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><path d="M12 12V3.5A8.5 8.5 0 0 1 20.5 12z" fill="currentColor" fill-opacity=".2"/><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12h3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-speaker" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor" fill-opacity=".2" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15.5 9.5c1.3 1.4 1.3 3.6 0 5M18.3 7c2.6 2.8 2.6 7.2 0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-rx" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z" fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9.5 9h3a1.6 1.6 0 0 1 0 3.2h-3V9zM9.5 12.2V16M12 12.2l3.2 3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8.5h3.2l1.8-3h7l1.8 3h3.2v10.5h-17z" fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.2" r="3.3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.3 4.2a2 2 0 0 1 3.4 0l7.5 13a2 2 0 0 1-1.7 3H4.5a2 2 0 0 1-1.7-3z" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 9.5v4M12 16.6v.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+      <symbol id="i-family" viewBox="0 0 24 24"><circle cx="8.5" cy="8" r="3" fill="currentColor" fill-opacity=".2" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="9.5" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 19.5c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5M14.5 15c2.6-.4 5.6.8 6.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="currentColor" fill-opacity=".14" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/></symbol>
+      <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3.5h10V9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><rect x="3.5" y="9" width="17" height="8" rx="2.5" fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="2"/><path d="M7 14h10v6.5H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 18.5l1.2-3.6A7.8 7.8 0 1 1 8.6 18z" fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 11h6M9 14h3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5c2.7-1 5.3-1 8 .8v13.4c-2.7-1.8-5.3-1.8-8-.8z" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 6.3c2.7-1.8 5.3-1.8 8-.8v13.4c-2.7-1-5.3-1-8 .8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    </svg>
+
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="/" aria-label="Dawai Dost home">
+          <svg class="brand__mark" aria-hidden="true"><use href="#i-logo" /></svg>
+          <span class="brand__name">Dawai Dost</span>
+          <span class="brand__hi" lang="hi">दवाई दोस्त</span>
+        </a>
+        <div class="header-actions">
+          <label class="profile-switch" id="profile-switch" hidden>
+            <span class="visually-hidden">Whose medicines</span>
+            <select id="profile-select"></select>
+          </label>
+          <button type="button" class="btn btn--ghost" id="settings-btn" aria-haspopup="dialog">Settings</button>
+        </div>
+      </div>
+    </header>
+
+    <div id="banner-region" class="container banner-region" aria-live="polite"></div>
+
+    <main id="main">
+      <!-- First screen: what this is + one-click demo. Static so crawlers read it without JS. -->
+      <section class="welcome container" id="welcome" aria-labelledby="welcome-title">
+        <div class="welcome__text">
+          <p class="eyebrow">Medicine reminders for elders · बुज़ुर्गों के लिए दवा याद दिलाने वाला</p>
+          <h1 id="welcome-title">The right pill, at the right time, <em>every day.</em></h1>
+          <p class="lead">
+            Dawai Dost speaks reminders aloud in Hindi or English, shows exactly which pill to take,
+            stops accidental double doses and lets family see what was missed. No sign-up, no password.
+          </p>
+          <div class="welcome__actions">
+            <button type="button" class="btn btn--primary btn--xl" id="demo-btn" data-action="demo">Try Instant Demo</button>
+            <button type="button" class="btn btn--outline btn--xl" id="start-btn" data-action="start">Start my own list</button>
+          </div>
+          <p class="welcome__note">The demo fills the app with two sample elders, six medicines and two weeks of history. Nothing to install.</p>
+        </div>
+        <figure class="welcome__preview" aria-label="Example of the Today screen">
+          <div class="preview-card">
+            <p class="preview-card__time">8:00 AM · after breakfast</p>
+            <div class="preview-row">
+              <svg class="pill pill--white" aria-hidden="true"><use href="#i-pill-round" /></svg>
+              <div><strong>Metformin 500 mg</strong><span>1 tablet</span></div>
+              <span class="chip chip--ok"><svg aria-hidden="true"><use href="#i-check" /></svg> Taken 8:04</span>
+            </div>
+            <div class="preview-row">
+              <svg class="pill pill--pink" aria-hidden="true"><use href="#i-pill-oval" /></svg>
+              <div><strong>Amlodipine 5 mg</strong><span>1 tablet</span></div>
+              <span class="chip chip--due"><svg aria-hidden="true"><use href="#i-bell" /></svg> Due now</span>
+            </div>
+            <div class="preview-row">
+              <svg class="pill pill--yellow" aria-hidden="true"><use href="#i-pill-capsule" /></svg>
+              <div><strong>Vitamin D3</strong><span>1 capsule</span></div>
+              <span class="chip">9:00 PM</span>
+            </div>
+          </div>
+          <figcaption>“Dadi, it is time for Amlodipine, one pink tablet.” Spoken aloud, in her language.</figcaption>
+        </figure>
+      </section>
+
+      <!-- The interactive app. Hidden until the demo or a real list is loaded. -->
+      <section class="app container" id="app" aria-label="Dawai Dost app" hidden>
+        <nav class="tabs" aria-label="App sections">
+          <button type="button" class="tab" role="tab" aria-selected="true" data-tab="today">Today</button>
+          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="medicines">Medicines</button>
+          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="history">Progress</button>
+          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="care">Family &amp; safety</button>
+        </nav>
+        <div class="panel" id="panel-today" data-panel="today" role="tabpanel" aria-label="Today"></div>
+        <div class="panel" id="panel-medicines" data-panel="medicines" role="tabpanel" aria-label="Medicines" hidden></div>
+        <div class="panel" id="panel-history" data-panel="history" role="tabpanel" aria-label="Progress" hidden></div>
+        <div class="panel" id="panel-care" data-panel="care" role="tabpanel" aria-label="Family and safety" hidden></div>
+      </section>
+
+      <noscript>
+        <div class="container noscript">
+          <p><strong>Dawai Dost needs JavaScript</strong> for reminders and tracking. Everything below explains what it does.</p>
+        </div>
+      </noscript>
+
+      <!-- Static, crawler-readable explanation of the problem and the solution. -->
+      <section class="info container" id="problem" aria-labelledby="problem-title">
+        <h2 id="problem-title">The problem</h2>
+        <div class="info__grid">
+          <p class="info__lede">
+            Many elderly people take five or more medicines a day. Forgetting is the most common reason doses are missed,
+            and confusion between similar-looking pills leads to double doses. Most reminder apps were never designed
+            for older eyes and hands.
+          </p>
+          <ul class="facts">
+            <li><strong>39–59%</strong> of missed medication is simple forgetting, across published studies of older adults.</li>
+            <li><strong>40–50%</strong> of elders in high-income countries take five or more medicines at once (polypharmacy).</li>
+            <li><strong>77% vs 44%</strong>: adherence among Indian elders with and without a caregiver involved.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="info container" id="solution" aria-labelledby="solution-title">
+        <h2 id="solution-title">How Dawai Dost solves it</h2>
+        <ol class="steps">
+          <li>
+            <h3>Organise in seconds</h3>
+            <p>Type a prescription the way a doctor writes it, like <code>Metformin 500mg 1-0-1 after food 30 days</code>, or photograph it. Gemini AI fills in the schedule and you confirm it.</p>
+          </li>
+          <li>
+            <h3>Remind in their language</h3>
+            <p>At dose time the app rings, shows the pill's colour and shape, and speaks the reminder in Hindi or English with a natural ElevenLabs voice.</p>
+          </li>
+          <li>
+            <h3>Track without mistakes</h3>
+            <p>One big “I took it” button. Each scheduled dose can only be logged once, so “did I already take it?” always has an answer.</p>
+          </li>
+          <li>
+            <h3>Keep family in the loop</h3>
+            <p>Share a private, revocable link or a WhatsApp summary so a son or daughter far away can see what was missed today.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="info container" id="features" aria-labelledby="features-title">
+        <h2 id="features-title">Key features</h2>
+        <dl class="feature-list">
+          <div><dt>One-tap big mode</dt><dd>Only the next dose and one huge button, for elders who find apps confusing.</dd></div>
+          <div><dt>Double-dose guard</dt><dd>Enforced in the database, not just on screen.</dd></div>
+          <div><dt>Refill warnings</dt><dd>Stock goes down with each dose and warns days before it runs out.</dd></div>
+          <div><dt>Duplicate medicine alert</dt><dd>Warns when two brands contain the same generic medicine.</dd></div>
+          <div><dt>Ask “what is this for?”</dt><dd>AI explains a medicine in simple Hindi or English, with a clear not-medical-advice note.</dd></div>
+          <div><dt>Doctor report &amp; emergency card</dt><dd>Printable adherence summary and an emergency card with allergies and contacts.</dd></div>
+          <div><dt>Phone calendar alarms</dt><dd>Export the schedule to any calendar so the phone rings even when the browser is closed.</dd></div>
+          <div><dt>Works offline, installs like an app</dt><dd>Add it to the home screen. No account, no password, no app store.</dd></div>
+        </dl>
+      </section>
+
+      <section class="info container" id="safety" aria-labelledby="safety-title">
+        <h2 id="safety-title">Safety and privacy</h2>
+        <p>
+          Dawai Dost is a reminder and tracking tool, not medical advice. If a dose is missed, it never suggests taking two
+          at once; it asks you to check with your pharmacist or doctor. Each browser gets its own private, invisible
+          account; database rules make sure nobody else can read your list. AI keys stay on our server.
+        </p>
+      </section>
     </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>Dawai Dost · Built for PromptWars × Code1 (PS02 MediTrack). Not a substitute for advice from your doctor or pharmacist.</p>
+      </div>
+    </footer>
+
+    <!-- Dialogs (native <dialog> gives focus trapping and Esc-to-close for free). -->
+    <dialog class="dialog dialog--alarm" id="alarm-dialog" aria-labelledby="alarm-title"></dialog>
+    <dialog class="dialog" id="med-dialog" aria-labelledby="med-title"></dialog>
+    <dialog class="dialog" id="profile-dialog" aria-labelledby="profile-title"></dialog>
+    <dialog class="dialog" id="info-dialog" aria-labelledby="info-title"></dialog>
+    <dialog class="dialog" id="settings-dialog" aria-labelledby="settings-title"></dialog>
+    <dialog class="dialog dialog--onetap" id="onetap-dialog" aria-labelledby="onetap-title"></dialog>
+
+    <div id="print-area" class="print-area" aria-hidden="true"></div>
+
+    <script type="module" src="/js/app.js"></script>
   </body>
 </html>
