@@ -13,7 +13,7 @@ export class AiUnavailableError extends Error {
 }
 
 /** POST to /api/ai with the session token. */
-async function callAi(body, timeoutMs = 30000) {
+async function callAi(body, timeoutMs = 50000) {
   const token = await getAccessToken();
   if (!token) throw new AiUnavailableError('AI needs an internet connection.');
   let res;
@@ -68,7 +68,7 @@ export async function parsePhotoWithAi(file) {
   if (file.size > 15 * 1024 * 1024) throw new AiUnavailableError('That photo is too large.');
   let image;
   try { image = await downscale(file); } catch { throw new AiUnavailableError('Could not read that photo. Try another one.'); }
-  const data = await callAi({ action: 'parsePhoto', image, mime: 'image/jpeg' }, 45000);
+  const data = await callAi({ action: 'parsePhoto', image, mime: 'image/jpeg' }, 50000);
   return (Array.isArray(data.medicines) ? data.medicines : []).map(sanitizeAiMedicine).filter(Boolean);
 }
 
