@@ -1,11 +1,11 @@
 /**
- * Data store: one interface, three interchangeable backends.
+ * Data store: one interface, two interchangeable backends.
  *
  *   cloud : Supabase (silent anonymous account, protected by RLS). The default.
  *   local : localStorage on this device. Used automatically if Supabase is down,
  *           so the app never stops working for an elder at dose time.
- *   demo  : in-memory sample data (kept as a last resort; the app now saves the
- *           sample family into the real account with importAll instead).
+ *
+ * New accounts start with a sample family, loaded once through importAll().
  *
  * Why one interface: views never care where data lives, and the fallback is just
  * a different backend object rather than if/else branches all over the UI.
@@ -61,12 +61,12 @@ function normProfile(p) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Memory backend (used for both "local" and "demo")                   */
+/* Memory backend (this device's localStorage)                         */
 /* ------------------------------------------------------------------ */
 class MemoryBackend {
   /**
    * @param {{profiles: any[], medicines: any[], logs: any[], links: any[]}} data
-   * @param {string | null} persistKey  localStorage key, or null for demo (not persisted)
+   * @param {string | null} persistKey  localStorage key, or null to keep data in memory only
    */
   constructor(data, persistKey) {
     this.data = data;
@@ -309,13 +309,10 @@ class CloudBackend {
 /* Public store                                                        */
 /* ------------------------------------------------------------------ */
 export const store = {
-  /** @type {'cloud' | 'local' | 'demo'} */
+  /** @type {'cloud' | 'local'} */
   mode: 'local',
   /** @type {MemoryBackend | CloudBackend} */
   backend: MemoryBackend.fromLocalStorage(),
-  /** Backend to return to when the demo ends. */
-  realBackend: null,
-  realMode: 'local',
 
   /**
    * Pick the backend: cloud if Supabase answers, otherwise this device.
@@ -334,33 +331,9 @@ export const store = {
       backend = MemoryBackend.fromLocalStorage();
       mode = 'local';
     }
-    // If the visitor already opened the demo while we were connecting, keep the
-    // demo running and remember the real backend for when they exit it.
-    if (this.mode === 'demo') {
-      this.realBackend = backend;
-      this.realMode = mode;
-    } else {
-      this.backend = backend;
-      this.mode = mode;
-    }
+    this.backend = backend;
+    this.mode = mode;
     return { fellBack: mode === 'local' };
-  },
-
-  /** Switch to in-memory sample data. @param {{profiles:any[],medicines:any[],logs:any[],links:any[]}} data */
-  startDemo(data) {
-    if (this.mode !== 'demo') {
-      this.realBackend = this.backend;
-      this.realMode = this.mode;
-    }
-    this.backend = new MemoryBackend(data, null);
-    this.mode = 'demo';
-  },
-
-  /** Leave the demo and go back to the user's real list. */
-  exitDemo() {
-    if (this.mode !== 'demo') return;
-    this.backend = this.realBackend ?? MemoryBackend.fromLocalStorage();
-    this.mode = this.realMode;
   },
 
   listProfiles: (...a) => store.backend.listProfiles(...a),

@@ -63,6 +63,7 @@ All endpoints accept JSON only (where relevant), cap the body size, return **gen
 
 - **No `innerHTML` anywhere.** All dynamic text goes through `el()` / `textContent` (`js/ui.js`).
 - **Headers** (`vercel.json`):
+  - `Strict-Transport-Security` (2 years, preload) and `Cross-Origin-Opener-Policy: same-origin`.
   - CSP: `default-src 'self'`; scripts and styles self-only; `connect-src` limited to our Supabase project; `media-src 'self' blob:` for voice audio; `frame-ancestors 'none'`; `object-src 'none'`; `upgrade-insecure-requests`.
   - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
   - `Permissions-Policy` disables camera, microphone, geolocation, payment and USB. Photo capture uses a file input, which needs no camera permission.

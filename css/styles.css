@@ -322,12 +322,6 @@ details summary { cursor: pointer; font-weight: 600; min-height: var(--tap); dis
 @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(6deg); } }
 @media (max-width: 55.99rem) { .fl--2, .fl--3 { display: none; } .fl--1 { top: -2%; right: 0; } }
 
-.phone { background: var(--bg); border-radius: 40px; box-shadow: var(--shadow-lg), inset 0 0 0 8px var(--surface); display: grid; gap: var(--s3); max-width: 420px; margin-inline: auto; padding: var(--s5); }
-.phone__head { display: flex; align-items: center; gap: var(--s3); }
-.phone__hello { display: grid; line-height: 1.2; }
-.phone__hello span { color: var(--muted); font-size: 0.85rem; }
-.phone .next__time { font-size: 3.6rem; }
-.phone .next__art .pill { width: 96px; height: 96px; }
 
 .info { padding-block: var(--s7); display: grid; gap: var(--s5); }
 .info h2 { font-size: clamp(1.7rem, 4vw, 2.3rem); letter-spacing: -0.03em; }
@@ -531,7 +525,7 @@ body.in-app { overflow-x: hidden; }
 
 /* Later today: pastel cards */
 .later-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
-@media (min-width: 720px) { .later-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .later-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 720px) { .later-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .later {
   position: relative; display: flex; flex-direction: column; gap: 2px; min-height: 176px;
   padding: var(--s4); border-radius: var(--r-lg);

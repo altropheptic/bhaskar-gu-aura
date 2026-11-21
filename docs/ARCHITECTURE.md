@@ -41,9 +41,9 @@ flowchart LR
 
 | Module | Responsibility |
 |---|---|
-| `app.js` | Boot, tabs, header, settings dialog, demo mode |
+| `app.js` | Boot, tabs, header, settings dialog, first-open setup (saves the sample family into a new account) |
 | `state.js` | Central state + actions (load, save, log dose, undo) with subscribe/emit |
-| `store.js` | One data interface with three backends: cloud (Supabase), local (localStorage), demo (memory) |
+| `store.js` | One data interface with two backends: cloud (Supabase) and local (localStorage fallback), plus `importAll` for the sample family |
 | `supabaseClient.js` | Browser client + silent anonymous session |
 | `schedule.js` | Pure schedule maths: doses per day, status, adherence, streaks, supply, duplicates |
 | `quickEntry.js` | Rule-based "1-0-1" prescription parser (offline fallback for AI) |
@@ -57,7 +57,9 @@ flowchart LR
 | `ai.js` | Client for `/api/ai` with photo downscaling |
 | `ics.js`, `share.js`, `reports.js` | Calendar export, WhatsApp + caregiver links, print views |
 | `caregiver.js` | The read-only family page |
-| `ui.js`, `settings.js` | Safe DOM helpers (`textContent` only), banners, toasts; theme and size preferences |
+| `notifications.js` | The bell: due and missed doses, refills and reminder setup in one sheet |
+| `routine.js` | Meal-based timing: slots, food offsets, re-timing when the routine changes |
+| `ui.js`, `settings.js` | Safe DOM helpers (`textContent` only), banners, toasts; text size and voice preferences |
 
 ## Key flows
 
@@ -81,3 +83,11 @@ flowchart LR
 ## Data model
 
 See [`supabase/schema.sql`](../supabase/schema.sql): `profiles` → `medicines` → `dose_logs`, plus `caregiver_links`. Every table has `user_id default auth.uid()` and four RLS policies.
+
+## Quality gates
+
+- `npm run lint`: ESLint (recommended + `eqeqeq`, `prefer-const`, `no-unused-vars`).
+- `npm test`: Vitest unit tests for the pure modules (`schedule`, `routine`, `quickEntry`, `medSchema`, `voiceText`, `demoData`) and the `/api` guards.
+- `npm run build`: Vite production build.
+- GitHub Actions runs all three on every push ([.github/workflows/ci.yml](../.github/workflows/ci.yml)).
+

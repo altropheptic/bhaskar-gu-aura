@@ -2,18 +2,20 @@
 
 5-hour hackathon on 21 Nov 2026 (150 participants). An automated AI grader reviews the GitHub repo and the live URL and picks the Top 10.
 
-## Evaluation criteria (every decision must serve these)
+## Evaluation criteria (Hack2skill AI grader, seen 21 Nov ~12:55; every decision must serve these)
 
-1. Innovation and Originality
-2. Problem-Solving Approach
-3. Website Functionality
-4. Effective Utilisation of AI Tools
-5. Presentation and Explanation
-6. Security
+| Parameter | Weight | What the grader checks |
+|---|---|---|
+| Code Quality | High | clean, readable, well-structured code |
+| Problem Statement Alignment | High | targets the root problem, user needs and core objectives of PS02 |
+| Security | Medium | safe practices, no common vulnerabilities |
+| Efficiency | Medium | good use of time and memory/resources |
+| Testing | Low | how easily the code can be tested, validated and maintained |
+| Accessibility | Low | usable for diverse users and environments |
 
-When planning or reviewing work, say which criteria it serves; the README gets one heading per criterion.
+The README has one numbered section per parameter, in this order. Submission form needs: challenge, public GitHub repo link, deployed link (the form says "Cloud Run URL"), LinkedIn post; 2 submission attempts; module closes 22 Nov 2026 17:00 IST.
 
-## Current state (snapshot 21 Nov, ~12:20 IST; live = commit 1d5cff5)
+## Current state (snapshot 21 Nov, ~13:10 IST)
 
 **Built and live: PS02 MediTrack as "Dawai Dost"** (medicine reminders for elders) at https://bhaskar-gu-aura.vercel.app. All work is pushed; the Vercel deploy is READY.
 
@@ -53,6 +55,8 @@ When planning or reviewing work, say which criteria it serves; the README gets o
 
 **Verified live:** cloud saving; Gemini parse + explain (~13 s); ElevenLabs Hindi/English (~12 s); caregiver link create/open/revoke; API guards (401/400/404); CSP intact; 390px layouts with no overflow.
 
+**Quality gates (added 21 Nov):** `npm run lint` (ESLint flat config, 0 issues), `npm test` (Vitest 5, 40 tests in `tests/`: schedule, routine, quickEntry, medSchema, voice + sample family, API guards), `npm run check` = lint + test + build, GitHub Actions CI (`.github/workflows/ci.yml`). `npm audit` = 0 vulnerabilities. vercel.json adds HSTS, COOP and long cache for `/assets` (immutable) and `/shots|/mock|/demo` (1 week). Dead demo-mode code removed from `store.js`.
+
 **Not yet done / ideas:** PWA offline test, print-preview check, final README polish before the deadline (feature freeze 60 min before). Test data "Test Elder" exists only in the owner's Chrome anonymous account (harmless).
 
 ## Project facts
@@ -75,7 +79,7 @@ Vanilla HTML5, semantic CSS3, ES6+ modules. Vite is only the dev server/bundler 
 2. **Zero login walls.** The main interface never requires sign-in. A prominent **"Try Instant Demo"** button on the first screen fills every feature with realistic demo data in one click, and still works if Supabase is down.
 3. **Crawler-readable.** The problem, solution, how it works and key features are static semantic HTML, not injected by JS, with a `<noscript>` note.
 4. **Security.** No secrets in browser code or the repo (only `VITE_*` reaches the browser). Privileged calls go through `/api/*`. RLS on every table with minimal explicit policies, mirrored in `supabase/schema.sql`; run `get_advisors` (security) after each schema change. Render untrusted text with `textContent`, never `innerHTML`. Validate input in the browser and again in `/api` (type, length, allowed values); `/api` returns generic errors. Update the CSP in `vercel.json` deliberately when a new origin is needed.
-5. **UI/UX polish.** Mobile-first, CSS variables, light/dark, visible focus states, ARIA labels, `prefers-reduced-motion`. Loading states, empty states and friendly error banners everywhere; never fail silently.
+5. **UI/UX polish.** Mobile-first, CSS variables, light only (owner), visible focus states, ARIA labels, `prefers-reduced-motion`. Loading states, empty states and friendly error banners everywhere; never fail silently.
 6. **Docs for the grader.** `README.md` with the live link and demo instructions at the top, then one heading per criterion; `docs/ARCHITECTURE.md` (Mermaid data flow), `docs/AI_WORKFLOW.md` (how Claude Code + Supabase/Vercel MCPs were used), `docs/SECURITY.md`. Write them in the final 45 minutes.
 7. **Workflow.** Small conventional commits. After each push to `main`, confirm the deployment is READY via the Vercel MCP and smoke-test the live URL. Feature freeze 60 minutes before the deadline.
 

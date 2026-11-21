@@ -10,7 +10,7 @@
  * page is open. For alarms with the browser closed, users export the schedule to
  * their phone calendar (ics.js), which is reliable even on iPhone.
  */
-import { el, icon, pillIcon, formatTime, doseLabel, MEAL_LABEL } from './ui.js';
+import { el, icon, formatTime, doseLabel, MEAL_LABEL } from './ui.js';
 import { currentProfile, state } from './state.js';
 import { todayDoses, takeOrSkip } from './doseActions.js';
 import { speakReminder } from './voice.js';

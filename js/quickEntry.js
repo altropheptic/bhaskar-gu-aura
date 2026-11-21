@@ -110,7 +110,7 @@ export function parsePrescription(text, today = new Date()) {
   // Name: what's left, minus form words and filler
   const name = rest
     .replace(/\b(tab|tabs|tablet|cap|caps|capsule|syp|syrup|inj|injection|drops?|x|for|take|daily|morning|night|evening)\b\.?/gi, ' ')
-    .replace(/[^\p{L}\p{N} +\-]/gu, ' ')
+    .replace(/[^\p{L}\p{N} +-]/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   if (name) {

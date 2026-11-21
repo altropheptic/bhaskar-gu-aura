@@ -31,7 +31,7 @@ The whole build was pair-programmed with **Claude Code** inside the hackathon's 
    - `search_docs` confirmed the anonymous sign-in behaviour.
 4. **Vercel via the Vercel CLI / MCP.** Linked project, environment variables and `vercel dev` for local `/api` testing. Deploys run only on the owner's go-ahead.
 5. **Verification.**
-   - Claude Code drove a real Chrome tab (Claude in Chrome) through the demo: the alarm firing, take/undo, add medicine via quick entry, every tab, one-tap mode, and light/dark themes.
+   - Claude Code drove a real Chrome tab (Claude in Chrome) through the app: the alarm firing, take/undo, add medicine via quick entry, every tab and one-tap mode. It also wrote the Vitest suite and the ESLint/CI setup.
    - It found and fixed a card-layout bug.
    - A Node script checked WCAG contrast; one failing green was darkened to pass AA.
    - `curl` checks confirmed the API returns 401 without a session, 400 on bad input and a generic 404 for bad caregiver tokens.
