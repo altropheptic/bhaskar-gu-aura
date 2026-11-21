@@ -13,53 +13,45 @@
 
 When planning or reviewing work, say which criteria it serves; the README gets one heading per criterion.
 
-## Current state
+## Current state (snapshot 21 Nov, ~12:20 IST; live = commit 1d5cff5)
 
-**Building PS02 MediTrack as "Dawai Dost"** (medicine reminders for elders). The approved plan covers: Supabase anonymous no-login accounts + RLS, Today/Medicines/Progress/Family tabs, alarms with voice, one-tap big mode, Gemini prescription parsing (text + photo) and "explain", ElevenLabs voice, caregiver links, WhatsApp summary, .ics export, doctor report, emergency card, PWA.
+**Built and live: PS02 MediTrack as "Dawai Dost"** (medicine reminders for elders) at https://bhaskar-gu-aura.vercel.app. All work is pushed; the Vercel deploy is READY.
 
-**Hold rules (owner, 21 Nov):** no `git push` and no Vercel deploy until the owner says so. Local commits and Supabase migrations are allowed. Verify locally (`npm run dev` for UI; `vercel dev` for `/api`; note `vercel dev` applies the CSP, which blocks Vite's dev-only inline styles).
+**Hold rule (owner):** never `git push` or deploy without the owner saying so in that turn ("Yes, deploy"). Local commits and Supabase migrations are fine. Test UI locally with `npm run dev` (port 5173). `vercel dev` applies the CSP, which blocks Vite's inline dev styles. Gemini/ElevenLabs keys exist **only in Vercel Production**, so test AI and voice on the live site.
 
-**Design (owner-approved):** fonts Lexend (headings) + Atkinson Hyperlegible Next (body), self-hosted via Fontsource; palette "Neem & Marigold" (tokens in `css/styles.css`); custom duotone SVG icons in the sprite in `index.html`. Avoid AI-slop defaults (Inter/Poppins/etc., purple gradients, icon libraries, sparkle icons, emoji icons).
+**Features:**
+- No-login: Supabase anonymous auth + RLS (4 tables: profiles, medicines, dose_logs, caregiver_links). Falls back to localStorage, plus an in-memory demo.
+- Today: week strip, "Up next" hero, Needs attention / Later today / Done.
+- Medicines CRUD:
+  - 1-0-1 quick fill, Gemini text/photo parse, Gemini "About".
+  - Routine-based slots, place cue ("kept at"), doctor, photo.
+- Alarms: chime + ElevenLabs voice (Hindi/English, browser fallback), snooze, notifications, one-tap big mode.
+- Progress: ring, streak, 14-day grid, badges, doctor report.
+- Family & safety: reminder health check, daily routine, caregiver link (hashed token) + WhatsApp, emergency card.
+- Other: .ics calendar export, PWA, Log out (back to the landing; keeps the list; landing then says "Open my list").
+- Demo: 4 people (Dadi, Nanaji, Papa, Maa), 18 medicines, 30 days of history, 14 real Wikimedia Commons photos in `public/demo/` (see CREDITS.md; `DEMO_PHOTO_RE` allows `/demo/*.jpg`).
 
-**UI rules (owner, round 4, 21 Nov): light only, no dark mode.**
-- The design follows the owner's reference shots ("Medico"-style):
-  - an "Up next" hero (tags, huge time, glossy pill, ink "Taken" pill button)
-  - pastel "Later today" cards tinted by medicine colour (`.tint--*`)
-  - list rows with time chips
-  - a floating white capsule tab bar with a lime active circle and an ink "+" on phones; a floating white sidebar on desktop
-  - "Hello, name" with an avatar and a bell badge in the top bar
-  - chip-based form controls (segments, stepper, swatches, day circles, routine tiles)
-- Pills are glossy SVG renders (gradients in the sprite: `#pg-hl`, `#pg-shade`); keep caregiver.html's sprite in sync.
-- Tokens: ink primary buttons, lime `#c6ec62` for up-next/selected (as background only, never as text on white), marigold for due.
+**AI:** `/api/ai` uses free-tier Gemini Flash Lite (`gemini-3.5-flash-lite` → `gemini-3.1-flash-lite` → `gemini-flash-lite-latest`, short per-try timeouts) and requires a Supabase JWT. `/api/tts` = ElevenLabs `eleven_multilingual_v2`, server-built sentence template. `/api/caregiver` = SHA-256 token lookup.
 
-**UI rules (owner, 21 Nov, round 2):** the app must look like an app, not a website. Landing (`#landing`) is short and static; once the demo or a list opens, `#landing` is hidden and the app shell (`#app`: sidebar ≥960px, bottom tab bar on phones, top bar with profile switch, demo chip and settings) takes over. Keep copy terse (labels, not paragraphs). 8px spacing scale (`--s1`…`--s8`), bordered cards only (no shadows, no nested cards), equal-width grids (`.grid-2`, 4-up `.stats`), card actions in `.card__foot`.
+**Design (owner-approved, light only, no dark mode):**
+- Fonts: Lexend + Atkinson Hyperlegible Next (Fontsource, self-hosted).
+- Palette "Neem & Marigold": ink primary buttons; lime `#c6ec62` for up-next/selected (background only, never text on white); marigold for due.
+- Layout follows the owner's "Medico"-style reference shots:
+  - "Up next" hero with a huge time, glossy pill and ink "Taken" button
+  - pastel `.tint--*` cards
+  - rows with time chips
+  - floating white sidebar (desktop) / white capsule tab bar with a lime active circle + ink "+" (phones)
+  - avatar "Hello, name" + bell badge
+  - chip-based form controls
+  - bottom-sheet dialogs on phones
+- White cards with a soft shadow, 8px spacing scale, terse copy. Avoid AI-slop defaults (Inter/Poppins, purple gradients, icon libraries, emoji, sparkle icons).
+- Pills are glossy SVG renders (`#pg-hl`/`#pg-shade` gradients); keep caregiver.html's sprite in sync with index.html.
 
-### Progress log (keep updated)
+**Supabase migrations applied:** `dawai_dost_initial_schema`, `routine_slots_and_place_cue`, `medicine_doctor_and_photo`. The security advisor is clean. Mirror any change in `supabase/schema.sql`.
 
-- Done:
-  - Supabase migration `dawai_dost_initial_schema` applied (4 tables, RLS); security advisor clean.
-  - All JS modules, `/api/ai` (Gemini), `/api/tts` (ElevenLabs), `/api/caregiver`, caregiver page, PWA, docs (README + `docs/*`).
-  - Commits `a865530` (build) and `46cdd4e` (docs).
-  - Verified in Chrome: demo, alarm, take/undo, quick fill, all tabs, one-tap mode, themes.
-  - API checks: 401 / 400 / 404 responses as designed.
-- Round 5: demo expanded to 4 people / 18 medicines / 30 days, with 14 real Wikimedia Commons photos in `public/demo/` (credits file; `DEMO_PHOTO_RE` allows `/demo/*.jpg`); Log out button (sidebar + Settings) returns to the landing, keeps the list.
-- Round 4 (full UI revamp from the owner's reference shots, light only): committed locally. Verified desktop + 390px (no overflow), form submit, one-tap, alarm.
-- Round 3 (USPs from competitor research + Dribbble patterns), committed locally:
-  - Routine-based reminders (`js/routine.js`, profile routine columns, medicine `slots`; doses re-time when the routine changes).
-  - "Kept at" place cue, doctor name, medicine photo (data-URL thumbnail).
-  - Reminder health check (`js/reminderHealth.js`).
-  - Today redesign: greeting, week strip, "Next up" hero, time rail; floating + on phones.
-  - Fixes: tolerant log matching after re-timing (`findLog`), sticky sidebar.
-  - Migrations: `routine_slots_and_place_cue`, `medicine_doctor_and_photo`.
-- Gemini/ElevenLabs keys are set in Vercel **Production only**: test AI and voice on the live site (local `/api` has no keys).
-- Round-2 UI rework committed locally (see `git log`).
-  - App shell, terse copy, symmetric grids.
-  - Verified in Chrome on desktop and at 390px width (no horizontal overflow on any tab).
-- Waiting on owner:
-  - Enable Supabase anonymous sign-ins (still off as of round 3; until then the app runs in on-device "offline mode").
-  - After that: test AI, voice, cloud saving and caregiver links end-to-end.
-- Live and verified (21 Nov): Supabase anonymous sign-in on (cloud saving works); Gemini 3.5 Flash Lite parse + explain OK (~13 s); ElevenLabs Hindi/English audio OK (~12 s); caregiver link create/open/revoke OK. Gemini uses free-tier Lite models (15 req/min, 500/day) with fallbacks.
-- Not yet: PWA offline test, print preview.
+**Verified live:** cloud saving; Gemini parse + explain (~13 s); ElevenLabs Hindi/English (~12 s); caregiver link create/open/revoke; API guards (401/400/404); CSP intact; 390px layouts with no overflow.
+
+**Not yet done / ideas:** PWA offline test, print-preview check, final README polish before the deadline (feature freeze 60 min before). Test data "Test Elder" exists only in the owner's Chrome anonymous account (harmless).
 
 ## Project facts
 
