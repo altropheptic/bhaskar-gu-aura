@@ -8,12 +8,14 @@
  * We validate each field and fill a fixed template (js/voiceText.js), so our
  * ElevenLabs key can't be abused to synthesise arbitrary audio.
  */
-import { json, rateLimited, readJson, requireUser } from './_lib.js';
+import { json, rateLimited, readJson, requireUser, overDailyQuota } from './_lib.js';
 import { reminderText, VOICE_LANGS, VOICE_FORMS, VOICE_MEALS } from '../js/voiceText.js';
 
 const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
 const MODEL_ID = process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2';
 const SAFE_NAME = /^[\p{L}\p{M}\p{N} .,+\-()/%']{1,60}$/u;
+/** About 25 reminders a day for a dozen medicines, with room for replays. */
+const TTS_PER_DAY = 300;
 const SAFE_PERSON = /^[\p{L}\p{M}\p{N} .'-]{0,40}$/u;
 
 /** Validate the payload; returns a clean copy or null. */
@@ -39,7 +41,9 @@ export async function POST(request) {
   const body = await readJson(request, 4000);
   const clean = body && validate(body);
   if (!clean) return json({ error: 'Invalid request.' }, 400);
-  if (!(await requireUser(request))) return json({ error: 'Please reload the page.' }, 401);
+  const userId = await requireUser(request);
+  if (!userId) return json({ error: 'Please reload the page.' }, 401);
+  if (overDailyQuota(userId, 'tts', TTS_PER_DAY)) return json({ error: 'Voice limit reached for today.' }, 429);
 
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key) return json({ error: 'Voice is not available.' }, 503);

@@ -8,7 +8,7 @@
 import { el, icon, emptyState } from './ui.js';
 import { state, currentProfile } from './state.js';
 import { adherence, streak, perMedicine, dosesForDay, doseStatus, addDays, startOfDay } from './schedule.js';
-import { printDoctorReport } from './reports.js';
+import { printDoctorReport } from './lazy.js';
 
 const DAYS_SHOWN = 14;
 

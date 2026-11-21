@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { POST as ai } from '../api/ai.js';
 import { POST as tts } from '../api/tts.js';
 import { GET as caregiver } from '../api/caregiver.js';
-import { readJson, rateLimited } from '../api/_lib.js';
+import { readJson, rateLimited, overDailyQuota } from '../api/_lib.js';
 
 let ip = 0;
 /** Each request gets its own fake IP so the per-IP rate limit doesn't interfere. */
@@ -31,6 +31,15 @@ describe('rateLimited', () => {
     const r = () => new Request('https://test.local/x', { headers: { 'x-forwarded-for': '203.0.113.9' } });
     const results = Array.from({ length: 4 }, () => rateLimited(r(), 'unit-test', 3));
     expect(results).toEqual([false, false, false, true]);
+  });
+});
+
+describe('overDailyQuota', () => {
+  it('caps each account per day, separately per feature', () => {
+    const uses = Array.from({ length: 3 }, () => overDailyQuota('user-a', 'ai', 2));
+    expect(uses).toEqual([false, false, true]);
+    expect(overDailyQuota('user-b', 'ai', 2)).toBe(false);
+    expect(overDailyQuota('user-a', 'tts', 2)).toBe(false);
   });
 });
 

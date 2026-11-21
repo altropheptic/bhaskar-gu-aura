@@ -9,8 +9,10 @@
  * walls, but we still want real per-user privacy. Supabase anonymous users get a
  * real auth.uid(), so RLS isolates each browser's data with no password at all.
  * The session is persisted in localStorage, so the same browser keeps its list.
+ *
+ * Why lazy: the Supabase library is the largest dependency. It is fetched in
+ * its own chunk while the page is already showing, instead of blocking it.
  */
-import { createClient } from '@supabase/supabase-js';
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -19,9 +21,28 @@ const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 export const isSupabaseConfigured = Boolean(url && publishableKey);
 
 /** @type {import('@supabase/supabase-js').SupabaseClient | null} */
-export const supabase = isSupabaseConfigured
-  ? createClient(url, publishableKey, { auth: { persistSession: true, autoRefreshToken: true } })
-  : null;
+let client = null;
+/** @type {Promise<import('@supabase/supabase-js').SupabaseClient | null> | null} */
+let loading = null;
+
+/** Load the Supabase library once and create the client. Resolves to null when not configured. */
+export function getSupabase() {
+  if (!isSupabaseConfigured) return Promise.resolve(null);
+  loading ??= import('@supabase/supabase-js').then(({ createClient }) => {
+    client = createClient(url, publishableKey, { auth: { persistSession: true, autoRefreshToken: true } });
+    return client;
+  });
+  return loading;
+}
+
+/**
+ * The loaded client, for code that only runs after ensureAnonymousSession()
+ * succeeded (the cloud backend).
+ */
+export function db() {
+  if (!client) throw new Error('Supabase is not loaded yet');
+  return client;
+}
 
 /**
  * Make sure this browser has a (silent) account. Resolves to the user id, or
@@ -29,9 +50,10 @@ export const supabase = isSupabaseConfigured
  * @param {number} [timeoutMs]
  * @returns {Promise<string>}
  */
-export async function ensureAnonymousSession(timeoutMs = 6000) {
-  if (!supabase) throw new Error('Supabase is not configured');
+export async function ensureAnonymousSession(timeoutMs = 8000) {
   const work = (async () => {
+    const supabase = await getSupabase();
+    if (!supabase) throw new Error('Supabase is not configured');
     const { data } = await supabase.auth.getSession();
     if (data.session?.user) return data.session.user.id;
     const { data: signIn, error } = await supabase.auth.signInAnonymously();
@@ -48,8 +70,9 @@ export async function ensureAnonymousSession(timeoutMs = 6000) {
  * @returns {Promise<string | null>}
  */
 export async function getAccessToken() {
-  if (!supabase) return null;
   try {
+    const supabase = await getSupabase();
+    if (!supabase) return null;
     const { data } = await supabase.auth.getSession();
     return data.session?.access_token ?? null;
   } catch {

@@ -17,13 +17,11 @@ import { el, icon, openDialog, showBanner, toast, avatarTint, setLoading } from 
 import { store } from './store.js';
 import { isSupabaseConfigured } from './supabaseClient.js';
 import { state, subscribe, loadAll, selectProfile, currentProfile } from './state.js';
-import { buildDemoData } from './demoData.js';
 import { renderToday } from './todayView.js';
 import { renderMedicines } from './medicinesView.js';
 import { renderHistory } from './historyView.js';
 import { renderCare, forgetLastLink } from './careView.js';
-import { openProfileDialog } from './profileDialog.js';
-import { openMedicineDialog } from './medForm.js';
+import { openProfileDialog, openMedicineDialog, loadDemoData, prefetchScreens } from './lazy.js';
 import { startReminders, enableNotifications, testChime } from './reminders.js';
 import { getSettings, setSettings, applySettings } from './settings.js';
 import { openNotifications, notificationCount } from './notifications.js';
@@ -79,6 +77,7 @@ function showApp() {
   document.body.classList.add('in-app');
   render();
   startReminders();
+  prefetchScreens();
 }
 
 function showWelcome() {
@@ -124,7 +123,7 @@ async function openApp(button) {
     await loadAll();
     let fresh = false;
     if (!state.profiles.length) {
-      await store.importAll(buildDemoData());
+      await store.importAll(await loadDemoData());
       state.profileId = null;
       await loadAll();
       fresh = true;

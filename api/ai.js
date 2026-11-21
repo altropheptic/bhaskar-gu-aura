@@ -17,7 +17,7 @@
  *  - generic error messages; provider details stay in server logs
  *  - AI never writes to the database; a person reviews and saves
  */
-import { json, rateLimited, readJson, requireUser } from './_lib.js';
+import { json, rateLimited, readJson, requireUser, overDailyQuota } from './_lib.js';
 import { FORMS, MEALS, sanitizeAiMedicine } from '../js/medSchema.js';
 
 /**
@@ -35,6 +35,8 @@ const MODELS = [
 /** Busy, rate-limited, unknown model id, or server error: try the next model. */
 const RETRYABLE = new Set([404, 429, 500, 502, 503, 504]);
 const MAX_BODY = 6_000_000; // ~4.5 MB image after base64
+/** Generous for one family, small enough that a stolen session can't burn the free quota. */
+const AI_PER_DAY = 150;
 const IMAGE_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 
 const MED_SCHEMA = {
@@ -163,6 +165,7 @@ export async function POST(request) {
 
   const userId = await requireUser(request);
   if (!userId) return json({ error: 'Please reload the page and try again.' }, 401);
+  if (overDailyQuota(userId, 'ai', AI_PER_DAY)) return json({ error: 'Daily AI limit reached. Quick fill without AI still works.' }, 429);
 
   try {
     switch (body.action) {

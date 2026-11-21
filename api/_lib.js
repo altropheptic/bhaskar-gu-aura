@@ -4,6 +4,8 @@
  * Security building blocks used by every endpoint:
  *  - json(): consistent, uncached JSON responses
  *  - rateLimited(): per-IP sliding window (per warm instance; Fluid compute reuses instances)
+ *  - overDailyQuota(): per-account daily cap, so one account can't drain the AI or
+ *    voice budget by switching networks
  *  - readJson(): content-type + size checks before parsing
  *  - requireUser(): verifies the caller's Supabase session JWT, so only real app
  *    sessions can spend our AI / voice quota
@@ -33,6 +35,23 @@ export function rateLimited(request, bucket, max) {
   hits.set(key, recent);
   if (hits.size > 5000) hits.clear(); // bounded memory
   return recent.length > max;
+}
+
+/** @type {Map<string, number>} */
+const daily = new Map();
+
+/**
+ * Count one use for this account today. True once the account is over `max`.
+ * @param {string} userId  verified Supabase user id
+ * @param {string} bucket
+ * @param {number} max     uses allowed per day
+ */
+export function overDailyQuota(userId, bucket, max) {
+  const key = `${bucket}:${userId}:${new Date().toISOString().slice(0, 10)}`;
+  const count = (daily.get(key) ?? 0) + 1;
+  daily.set(key, count);
+  if (daily.size > 20000) daily.clear(); // bounded memory
+  return count > max;
 }
 
 /**

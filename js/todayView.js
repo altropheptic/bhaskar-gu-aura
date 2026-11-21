@@ -17,9 +17,8 @@ import { el, icon, pillIcon, showBanner, formatClock, doseLabel, MEAL_LABEL, emp
 import { state, undoDose, currentProfile, emit } from './state.js';
 import { findLog, daysOfSupply, duplicateGenerics, dosesForDay, doseStatus, dayScore, addDays, startOfDay, isoDate } from './schedule.js';
 import { takeOrSkip } from './doseActions.js';
-import { openOneTap } from './oneTap.js';
 import { speakReminder } from './voice.js';
-import { openMedicineDialog } from './medForm.js';
+import { openMedicineDialog, openOneTap } from './lazy.js';
 import { doseSlotLabel } from './routine.js';
 import { medMedia, photoImg } from './photo.js';
 

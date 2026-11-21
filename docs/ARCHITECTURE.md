@@ -43,13 +43,17 @@ flowchart LR
 |---|---|
 | `app.js` | Boot, tabs, header, settings dialog, first-open setup (saves the sample family into a new account) |
 | `state.js` | Central state + actions (load, save, log dose, undo) with subscribe/emit |
-| `store.js` | One data interface with two backends: cloud (Supabase) and local (localStorage fallback), plus `importAll` for the sample family |
+| `store.js` | One data interface that picks a backend: cloud or local (fallback), plus `importAll` for the sample family |
+| `storeCloud.js`, `storeLocal.js`, `storeRows.js` | Supabase backend, localStorage backend, and the column/normalising rules both share |
 | `supabaseClient.js` | Browser client + silent anonymous session |
 | `schedule.js` | Pure schedule maths: doses per day, status, adherence, streaks, supply, duplicates |
 | `quickEntry.js` | Rule-based "1-0-1" prescription parser (offline fallback for AI) |
 | `medSchema.js` | Field rules shared by the browser form **and** the server (validation + AI sanitiser) |
 | `todayView.js`, `medicinesView.js`, `historyView.js`, `careView.js` | The four screens |
 | `medForm.js`, `profileDialog.js` | Add/edit dialogs with validation |
+| `formControls.js`, `quickAdd.js`, `medFormData.js` | Reusable form controls; the Quick fill / Scan panel; pure form → medicine conversion |
+| `lazy.js` | Loads rarely used screens on demand and pre-fetches them when idle |
+| `types.js` | JSDoc typedefs for `Profile`, `Medicine`, `DoseLog`, `Dose` |
 | `doseActions.js` | Take / skip / undo, shared by Today, alarm and one-tap mode |
 | `reminders.js` | Alarm engine: 20 s tick, chime (Web Audio), voice, notification, snooze |
 | `oneTap.js` | Full-screen one-button mode |
@@ -87,7 +91,8 @@ See [`supabase/schema.sql`](../supabase/schema.sql): `profiles` → `medicines` 
 ## Quality gates
 
 - `npm run lint`: ESLint (recommended + `eqeqeq`, `prefer-const`, `no-unused-vars`).
-- `npm test`: Vitest unit tests for the pure modules (`schedule`, `routine`, `quickEntry`, `medSchema`, `voiceText`, `demoData`) and the `/api` guards.
+- `npm test`: 128 Vitest tests: pure logic, both storage backends, `/api` guards and full flows (network mocked), screens and dialogs in jsdom, the whole user journey, an axe-core accessibility audit and a WCAG contrast check.
+- `npm run coverage`: the same with V8 coverage (~81% of lines) and minimum thresholds.
 - `npm run build`: Vite production build.
 - GitHub Actions runs all three on every push ([.github/workflows/ci.yml](../.github/workflows/ci.yml)).
 

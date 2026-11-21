@@ -5,9 +5,9 @@
  * not health data, so they never need to leave the device.
  */
 const KEY = 'dawai-dost-settings';
-const DEFAULTS = { theme: 'system', size: 'normal', voice: true };
+const DEFAULTS = { size: 'normal', voice: true };
 
-/** @returns {{ theme: 'system' | 'light' | 'dark', size: 'normal' | 'xl', voice: boolean }} */
+/** @returns {{ size: 'normal' | 'xl', voice: boolean }} */
 export function getSettings() {
   try {
     return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
@@ -27,7 +27,6 @@ export function setSettings(patch) {
 /** Reflect settings on <html> so CSS tokens switch instantly. The app is light-only by design. */
 export function applySettings(s = getSettings()) {
   const root = document.documentElement;
-  root.removeAttribute('data-theme');
   if (s.size === 'xl') root.dataset.size = 'xl';
   else root.removeAttribute('data-size');
 }

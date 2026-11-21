@@ -9,8 +9,7 @@ import { state, currentProfile, loadProfileData } from './state.js';
 import { store } from './store.js';
 import { todayDoses } from './doseActions.js';
 import { todaySummaryText, shareOnWhatsApp, createCaregiverLink } from './share.js';
-import { printEmergencyCard } from './reports.js';
-import { openProfileDialog } from './profileDialog.js';
+import { printEmergencyCard, openProfileDialog } from './lazy.js';
 import { healthCard } from './reminderHealth.js';
 import { SLOTS, SLOT_LABEL, ROUTINE_FIELDS, routineOf } from './routine.js';
 

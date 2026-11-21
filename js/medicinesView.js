@@ -7,8 +7,7 @@
 import { el, icon, pillIcon, formatTime, doseLabel, MEAL_LABEL, emptyState, openDialog, showBanner, toast, setLoading, tintClass } from './ui.js';
 import { state, currentProfile, saveMedicine, deleteMedicine } from './state.js';
 import { daysOfSupply, duplicateGenerics } from './schedule.js';
-import { openMedicineDialog } from './medForm.js';
-import { explainWithAi } from './ai.js';
+import { openMedicineDialog, explainWithAi } from './lazy.js';
 import { medMedia } from './photo.js';
 import { doseSlotLabel } from './routine.js';
 

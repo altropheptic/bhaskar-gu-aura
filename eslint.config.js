@@ -17,8 +17,13 @@ export default [
     languageOptions: { sourceType: 'script', globals: { ...globals.serviceworker } },
   },
   {
-    files: ['api/**/*.js', 'tests/**/*.js', '*.config.js'],
+    files: ['api/**/*.js', '*.config.js'],
     languageOptions: { ecmaVersion: 2023, sourceType: 'module', globals: { ...globals.node } },
+  },
+  {
+    // Tests run in Node, and some in a simulated browser (jsdom).
+    files: ['tests/**/*.js'],
+    languageOptions: { ecmaVersion: 2023, sourceType: 'module', globals: { ...globals.node, ...globals.browser } },
   },
   {
     rules: {

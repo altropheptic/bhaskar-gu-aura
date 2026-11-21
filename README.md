@@ -46,18 +46,22 @@ PS02 asks for *a simple, accessible web app to organise, manage and track daily 
 
 ## 2. Code quality
 
-- **Small, single-purpose ES modules** in [`js/`](js) (vanilla JS, no framework). Each file opens with a JSDoc note on *why* it exists. Examples: `schedule.js` (dose maths), `routine.js` (meal-based timing), `store.js` (one data interface, two backends), `todayView.js` (one screen).
-- **Pure logic is separated from the DOM**, which is what makes the unit tests possible.
+- **Small, single-purpose ES modules** in [`js/`](js) (vanilla JS, no framework). No module is over 250 lines, and each opens with a JSDoc note on *why* it exists.
+  - Logic: `schedule.js` (dose maths), `routine.js` (meal-based timing), `quickEntry.js` (1-0-1 reader), `medFormData.js` (form → medicine).
+  - Data: `store.js` (one interface) over `storeLocal.js` and `storeCloud.js`, with shared row rules in `storeRows.js`.
+  - UI: one file per screen, plus reusable `formControls.js` and `quickAdd.js`.
+- **Shared types:** [`js/types.js`](js/types.js) documents `Profile`, `Medicine`, `DoseLog` and `Dose` as JSDoc typedefs, so editors autocomplete and check them.
+- **Pure logic is separate from the DOM**, which keeps it easy to test.
 - **One source of truth:** views read shared state; only `state.js` actions write, so screens never disagree.
-- **Shared rules, no duplication:** the voice sentence template (`voiceText.js`) and validation (`medSchema.js`) are used by both the browser and the `/api` functions.
-- **ESLint** (recommended rules + `eqeqeq`, `prefer-const`, `no-unused-vars`) passes with zero warnings. Run `npm run lint`.
-- **CI** on every push: lint → tests → production build ([workflow](.github/workflows/ci.yml)).
+- **No duplication:** the voice sentence template (`voiceText.js`) and validation (`medSchema.js`) are shared by the browser and the `/api` functions.
+- **ESLint** (recommended + `eqeqeq`, `prefer-const`, `no-unused-vars`, `no-var`): 0 issues.
+- **CI** on every push: lint → tests with coverage thresholds → production build ([workflow](.github/workflows/ci.yml)).
 
 ```
 api/        Vercel functions: ai.js (Gemini), tts.js (ElevenLabs), caregiver.js, _lib.js (guards)
-js/         Browser modules: app, state, store, schedule, routine, views, reminders, voice…
+js/         Browser modules: app, state, store*, schedule, routine, screens, dialogs, reminders, voice…
 css/        One stylesheet with design tokens
-tests/      Vitest unit tests (logic + API guards)
+tests/      128 Vitest tests: logic, API flows, screens, dialogs, the full user journey, accessibility
 supabase/   schema.sql: tables, CHECK constraints, RLS policies (mirrors the applied migrations)
 docs/       ARCHITECTURE.md · SECURITY.md · AI_WORKFLOW.md
 ```
@@ -65,47 +69,58 @@ docs/       ARCHITECTURE.md · SECURITY.md · AI_WORKFLOW.md
 ## 3. Security
 
 - **Private without a login.** Each browser gets a Supabase anonymous account, and **Row Level Security** on all 4 tables limits every user to their own rows. Inserts must also prove the parent profile or medicine is theirs.
-- **Secrets never reach the browser.** Only public `VITE_*` values are bundled. Gemini, ElevenLabs and the Supabase secret key live in `/api` only.
-- **Hardened API.** `/api/ai` and `/api/tts` require a valid session, are rate-limited per IP, cap body size, validate every field against allow-lists and return generic errors. The voice endpoint can only speak a fixed template, never arbitrary text.
-- **Caregiver links** use 24 random bytes. Only a SHA-256 hash is stored, and links expire and can be revoked.
+- **Secrets never reach the browser.** Only public `VITE_*` values are bundled. Gemini, ElevenLabs and the Supabase secret key live in `/api` only, and are sent in headers, never in URLs.
+- **Hardened API:**
+  - `/api/ai` and `/api/tts` require a valid session.
+  - Limits: per IP (per minute) and per account (per day), so a stolen session can't drain the AI or voice budget.
+  - Every field is checked against size limits and allow-lists, and errors are generic.
+  - The voice endpoint can only speak a fixed template, never free text.
+  - The AI prompt treats prescriptions as untrusted data, and its output is re-validated on the server and again in the browser.
+- **Caregiver links** use 24 random bytes. Only a SHA-256 hash is stored, links expire and can be revoked, and the endpoint returns the minimum data.
 - **Three layers of validation:** browser, `/api` and Postgres `CHECK` constraints.
-- **XSS-safe:** all dynamic text uses `textContent` (no `innerHTML`). Strict CSP (self + our Supabase only), HSTS, `X-Frame-Options: DENY`, `nosniff`, COOP and a tight `Permissions-Policy`.
-- **Dependencies:** `npm audit` reports 0 vulnerabilities. The Supabase security advisor shows only the expected anonymous-sign-in notice.
+- **XSS-safe:** all dynamic text uses `textContent` (no `innerHTML`).
+- **Headers:** strict CSP (self + our Supabase only), HSTS, `X-Frame-Options: DENY`, `nosniff`, COOP, CORP and a tight `Permissions-Policy`.
+- **Responsible disclosure:** [`/.well-known/security.txt`](public/.well-known/security.txt).
+- **Checked:** `npm audit` reports 0 vulnerabilities, and 22 tests cover the API guards and flows (bad input, missing session, prompt-injection framing, key handling, quotas). The Supabase security advisor shows only the expected anonymous-sign-in notice.
 
 Details: [docs/SECURITY.md](docs/SECURITY.md)
 
 ## 4. Efficiency
 
-- **No framework.** The whole app is about 83 KB gzipped (most of it the Supabase client), with ~10 KB of CSS. The landing page HTML is ~6 KB gzipped.
-- **Images:** screenshots are WebP (13–33 KB each), the hero image loads with high priority, and the rest load lazily. Medicine photos are 360px JPEGs; user photos are resized in the browser to a ~25 KB thumbnail before saving.
-- **Caching:** hashed build assets are cached for a year (`immutable`); images for a week.
-- **Few network calls:** a new account is set up with a few batched inserts; logs are read for 30 days only; the AI tries fast "Flash Lite" models with short timeouts, then falls back.
-- **Server close to users:** functions run in Mumbai (`bom1`), next to the Supabase project in Mumbai.
-- **Offline-ready:** a service worker caches the app shell (PWA), and reminders keep working from local state.
+- **Small first load:** the first screen needs **18 KB of JavaScript (gzipped)** plus ~10 KB of CSS, with no framework.
+  - The Supabase library (56 KB) loads in parallel in its own chunk.
+  - The medicine form, profile dialog, one-tap mode, print views, AI client and sample family load only when used, then are pre-fetched while the browser is idle.
+- **Images:** screenshots are WebP (13–33 KB), the logo 40 KB. The hero image loads with high priority; the rest load lazily. User photos are shrunk in the browser to ~25 KB before saving.
+- **Caching:** hashed build files are cached for a year (`immutable`), images for a week, and a service worker keeps the app shell for offline use.
+- **Few network calls:**
+  - A new account is set up with a few batched inserts (history in batches of 500).
+  - Only 30 days of logs are read.
+  - The AI uses fast "Flash Lite" models with short timeouts and falls back to the next model.
+- **Close to users:** functions run in Mumbai (`bom1`), next to the Supabase project, also in Mumbai.
 
 ## 5. Testing
 
-**40 unit tests** with [Vitest](https://vitest.dev) in [`tests/`](tests). Run `npm test`.
+**128 tests in 17 files** with [Vitest](https://vitest.dev), **81% line coverage**, and minimum coverage enforced in CI. Run `npm test`, or `npm run coverage`.
 
-| Area | What's covered |
+| Level | What's covered |
 |---|---|
-| Scheduling | doses per day, due / missed windows, matching logs after re-timing, adherence, streaks, refill days, duplicate brands |
-| Routine | meal offsets (before / after food), re-timing when the routine changes, custom times kept |
-| Prescription reader | `1-0-1`, `BD`, `HS`, half tablets, syrups in ml, durations, never throws |
-| Validation | form rules, AI-output sanitising, photo allow-list (blocks remote URLs and path tricks) |
-| Voice | English and Hindi sentences, "half a tablet", unknown-language fallback |
-| Sample family | every medicine passes the form's validation; history has no future or duplicate doses |
-| API guards | bad JSON → 400, no session → 401, bad caregiver token → 404, rate limit kicks in |
+| Logic | dose scheduling, due/missed windows, re-timing, adherence, streaks, refills, duplicate brands, the 1-0-1 reader, form → data, validation, voice sentences, calendar export |
+| Data | local and cloud backends: normalising, the double-dose guard, Undo restoring stock, friendly errors, rollback of a failed setup, batched inserts |
+| API | guards (400/401/404/429), Gemini parsing, model fallback, prompt framing, key only in headers, voice template, caregiver link lookup by hash |
+| Screens | Today, Medicines, Progress, Family, alerts, one-tap mode, print views, add/edit dialogs, alarm ringing and "I took it" |
+| Journey | home → Get started → every tab → bell → settings → log out → back, with Supabase unreachable (on-device fallback) |
+| Accessibility | axe-core audit of 3 pages, plus a WCAG contrast check of the colour palette |
 
 The live site was also checked end to end: account setup, Gemini parsing, ElevenLabs voice in both languages, caregiver links, API guards and phone layouts.
 
 ## 6. Accessibility
 
+- **Audited automatically:** **0 axe-core violations** on the home page, the app with the Today screen and the family page. Every text colour pair passes **WCAG 2.2 AA (4.5:1)**, and UI borders reach 3:1. Both checks run in CI.
 - **Built for older eyes and hands:** 18px base text with an extra-large mode, 48–56px tap targets, Atkinson Hyperlegible Next (a typeface designed for low-vision readers), and a big one-tap mode.
-- **Not colour alone:** every status has an icon and a word (✓ Taken, ✕ Missed), and text pairs meet WCAG AA contrast.
-- **Keyboard and screen readers:** semantic HTML, a skip link, visible focus rings, ARIA labels on icon buttons, native `<dialog>` (focus trap, Esc to close), and live regions for results.
+- **Not colour alone:** every status has an icon and a word (✓ Taken, ✕ Missed).
+- **Keyboard and screen readers:** semantic HTML, a skip link, visible focus rings, ARIA labels on icon buttons, native `<dialog>` (focus trap, Esc to close), `role="status"` toasts and live regions. Hindi text is marked `lang="hi"`.
 - **Voice:** reminders are spoken in Hindi or English for people who can't read small print.
-- **Motion and layout:** honours `prefers-reduced-motion`, works from 320px phones to desktops, and the landing content is readable without JavaScript.
+- **Different setups:** Windows High Contrast (forced colours) keeps selected and focus states visible, `prefers-reduced-motion` is honoured, layouts work from 320px phones to desktops, and the home page reads without JavaScript.
 
 ## AI tools used
 
@@ -120,7 +135,7 @@ npm install
 vercel env pull .env.local   # needs access to the Vercel project; see .env.example
 npm run dev                  # app on http://localhost:5173
 vercel dev                   # app + /api on http://localhost:3000
-npm run check                # lint + tests + build
+npm run check                # lint + tests with coverage + build
 ```
 
 **Stack:** HTML5, CSS3, ES modules, Vite · Supabase (Postgres, RLS, anonymous auth) · Vercel (static + Node functions in Mumbai) · Gemini · ElevenLabs.

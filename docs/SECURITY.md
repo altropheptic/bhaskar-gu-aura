@@ -41,9 +41,11 @@ Each risk has at least two independent defences.
 
 | Endpoint | Auth | Validation | Rate limit |
 |---|---|---|---|
-| `POST /api/ai` | Supabase JWT (`auth.getUser`) | action allow-list; text ≤ 1000 chars; image base64 regex, JPEG/PNG/WebP only, ≤ ~4.5 MB; explain fields length-checked; `lang` ∈ {en, hi} | 12/min/IP |
-| `POST /api/tts` | Supabase JWT | lang/form/meal allow-lists; names match a Unicode letter regex ≤ 60 chars; 1–3 medicines; qty 0.5–20 | 20/min/IP |
+| `POST /api/ai` | Supabase JWT (`auth.getUser`) | action allow-list; text ≤ 1000 chars; image base64 regex, JPEG/PNG/WebP only, ≤ ~4.5 MB; explain fields length-checked; `lang` ∈ {en, hi} | 12/min/IP + 150/day/account |
+| `POST /api/tts` | Supabase JWT | lang/form/meal allow-lists; names match a Unicode letter regex ≤ 60 chars; 1–3 medicines; qty 0.5–20 | 20/min/IP + 300/day/account |
 | `GET /api/caregiver` | share token | `^[A-Za-z0-9_-]{32}$`; SHA-256 lookup; expiry + revocation checked | 30/min/IP |
+
+The per-account daily cap means a stolen session or rotating IPs can't drain the free AI or voice quota. Both limits are kept in memory per warm function instance.
 
 All endpoints accept JSON only (where relevant), cap the body size, return **generic error messages** (details go to server logs), and send `Cache-Control: no-store`.
 
@@ -63,7 +65,7 @@ All endpoints accept JSON only (where relevant), cap the body size, return **gen
 
 - **No `innerHTML` anywhere.** All dynamic text goes through `el()` / `textContent` (`js/ui.js`).
 - **Headers** (`vercel.json`):
-  - `Strict-Transport-Security` (2 years, preload) and `Cross-Origin-Opener-Policy: same-origin`.
+  - `Strict-Transport-Security` (2 years, preload), `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`, `X-Permitted-Cross-Domain-Policies: none`.
   - CSP: `default-src 'self'`; scripts and styles self-only; `connect-src` limited to our Supabase project; `media-src 'self' blob:` for voice audio; `frame-ancestors 'none'`; `object-src 'none'`; `upgrade-insecure-requests`.
   - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
   - `Permissions-Policy` disables camera, microphone, geolocation, payment and USB. Photo capture uses a file input, which needs no camera permission.
@@ -74,3 +76,7 @@ All endpoints accept JSON only (where relevant), cap the body size, return **gen
 - Anonymous accounts are per browser. Clearing site data loses access to that list, by design, because there is no PII to recover it with.
 - The in-memory rate limit is per warm function instance; it is not a global limit.
 - Alarms run only while the page is open. The `.ics` export covers the closed-browser case.
+
+## Reporting a problem
+
+See [`/.well-known/security.txt`](../public/.well-known/security.txt): report privately through GitHub security advisories, or open an issue for non-sensitive problems.
