@@ -45,7 +45,8 @@ When planning or reviewing work, say which criteria it serves; the README gets o
 - Waiting on owner:
   - Enable Supabase anonymous sign-ins (still off as of round 3; until then the app runs in on-device "offline mode").
   - After that: test AI, voice, cloud saving and caregiver links end-to-end.
-- Not yet: push/deploy (owner must approve), PWA offline test, print preview.
+- Deployed: commit `690c63e` is live (Vercel READY, smoke-tested). Live AI/voice still blocked: Supabase anonymous sign-ins are off, so no session JWT reaches `/api`.
+- Not yet: PWA offline test, print preview.
 
 ## Project facts
 
