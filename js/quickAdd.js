@@ -90,7 +90,6 @@ export function quickAddSection(applyFields) {
   return el('section', { className: 'quick-entry', attrs: { 'aria-label': 'Quick add' } }, [
     el('div', { className: 'quick-entry__head' }, [
       el('label', { text: 'Quick add', attrs: { for: 'quick-text' } }),
-      el('span', { className: 'tag tag--lime', text: 'Gemini AI' }),
     ]),
     quickIn,
     el('div', { className: 'btn-row' }, [fillBtn, scanBtn]),

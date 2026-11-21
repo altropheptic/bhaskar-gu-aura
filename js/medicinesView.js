@@ -21,8 +21,7 @@ function daysText(days) {
 /** AI explanation in the person's language, always with a safety note. */
 async function explain(med) {
   const dialog = /** @type {HTMLDialogElement} */ (document.getElementById('info-dialog'));
-  const profile = currentProfile();
-  const lang = profile?.language === 'hi' ? 'hi' : 'en';
+  const lang = 'en'; // explanations are always in English (voice reminders still follow the person's language)
   const body = openDialog(dialog, med.name, 'info-title');
   const out = el('div', { attrs: { 'aria-live': 'polite' } }, [el('p', {}, [el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true' } }), ' Asking Gemini…'])]);
   body.replaceChildren(out, el('p', { className: 'disclaimer', text: 'General information, not medical advice.' }));
