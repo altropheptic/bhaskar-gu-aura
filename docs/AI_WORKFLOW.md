@@ -35,7 +35,10 @@ The whole build was pair-programmed with **Claude Code** inside the hackathon's 
    - It found and fixed a card-layout bug.
    - A Node script checked WCAG contrast; one failing green was darkened to pass AA.
    - `curl` checks confirmed the API returns 401 without a session, 400 on bad input and a generic 404 for bad caregiver tokens.
-6. **Human in the loop.** The owner made every product decision (name, palette, fonts, features, no deploy without approval). Claude Code proposed, implemented and verified.
+6. **Design iteration.** After the first build, the owner asked for an app feel instead of a website, with less text.
+   - Claude Code researched app-shell navigation (sidebar on desktop, bottom tab bar on mobile), 8pt spacing and card-consistency guidance.
+   - It rebuilt the layout and measured horizontal overflow at 390px in the browser until every screen fitted.
+7. **Human in the loop.** The owner made every product decision (name, palette, fonts, features, no deploy without approval). Claude Code proposed, implemented and verified.
 
 ## Repo conventions that help AI agents
 

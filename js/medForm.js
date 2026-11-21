@@ -61,7 +61,7 @@ export function openMedicineDialog(existing) {
     times: ['08:00'], days: [0, 1, 2, 3, 4, 5, 6], dose_qty: 1, stock: null, refill_at: 5,
     start_date: isoDate(new Date()), end_date: null, active: true, notes: '',
   };
-  const body = openDialog(dialog, existing ? `Edit ${existing.name}` : `Add a medicine for ${profile.name}`, 'med-title');
+  const body = openDialog(dialog, existing ? `Edit ${existing.name}` : 'Add medicine', 'med-title');
 
   /* ---------- the form ---------- */
   const form = el('form', { attrs: { novalidate: true } });
@@ -79,7 +79,7 @@ export function openMedicineDialog(existing) {
 
   // Colour swatches show the actual pill icon colour
   const colourSet = el('fieldset', {}, [
-    el('legend', { text: 'Pill colour' }),
+    el('legend', { text: 'Colour' }),
     el('div', { className: 'check-row' }, COLORS.map((c) => el('label', {}, [
       el('input', { attrs: { type: 'radio', name: 'color', value: c, checked: c === m.color } }),
       pillIcon({ color: c, shape: 'round' }),
@@ -111,32 +111,32 @@ export function openMedicineDialog(existing) {
     ]))),
   ]);
 
-  const mealSet = radioGroup('With food?', 'meal', MEALS, MEAL_TEXT, m.meal);
+  const mealSet = radioGroup('Food', 'meal', MEALS, MEAL_TEXT, m.meal);
   const activeRow = existing && el('label', { className: 'check-row' }, [
-    el('input', { attrs: { type: 'checkbox', name: 'active', checked: m.active } }), 'Active (uncheck to pause this medicine)',
+    el('input', { attrs: { type: 'checkbox', name: 'active', checked: m.active } }), 'Active',
   ]);
 
   const errorBox = el('div', { attrs: { role: 'alert', 'aria-live': 'assertive' } });
   const saveBtn = el('button', { className: 'btn btn--primary btn--xl', text: existing ? 'Save changes' : 'Save medicine', attrs: { type: 'submit' } });
 
   form.append(
-    field('Medicine name', nameIn, 'As written on the strip, e.g. "Glycomet" or "Metformin".'),
+    field('Medicine name', nameIn),
     el('div', { className: 'field-grid' }, [
       field('Strength', dosageIn),
-      field('Generic name (salt)', genericIn, 'Helps us warn about duplicate medicines.'),
+      field('Generic (salt)', genericIn),
     ]),
-    el('div', { className: 'field-grid' }, [field('Type', formSel), field('Shape', shapeSel), field('How many each time', qtyIn)]),
+    el('div', { className: 'field-grid' }, [field('Type', formSel), field('Shape', shapeSel), field('Dose', qtyIn)]),
     colourSet,
-    el('fieldset', {}, [el('legend', { text: 'Times each day' }), timesBox]),
+    el('fieldset', {}, [el('legend', { text: 'Times' }), timesBox]),
     daysSet,
     mealSet,
     el('div', { className: 'field-grid' }, [
       field('Start date', startIn),
-      field('End date', endIn, 'Leave empty if it is ongoing.'),
+      field('End date (optional)', endIn),
     ]),
     el('div', { className: 'field-grid' }, [
-      field('Tablets in stock', stockIn, 'We count down as doses are taken.'),
-      field('Warn me when this many days are left', refillIn),
+      field('In stock (optional)', stockIn),
+      field('Refill alert (days left)', refillIn),
     ]),
     field('Notes', notesIn),
     activeRow,
@@ -173,37 +173,37 @@ export function openMedicineDialog(existing) {
   let quick = null;
   if (!existing) {
     const quickIn = el('textarea', {
-      attrs: { id: 'quick-text', rows: 2, maxlength: 1000, placeholder: 'e.g. Metformin 500mg 1-0-1 after food for 30 days' },
+      attrs: { id: 'quick-text', rows: 2, maxlength: 1000, placeholder: 'Metformin 500mg 1-0-1 after food 30 days' },
     });
     const results = el('div', { attrs: { 'aria-live': 'polite' } });
     const aiBtn = el('button', { className: 'btn btn--primary', attrs: { type: 'button' } }, [icon('rx'), 'Fill with AI']);
-    const ruleBtn = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, ['Quick fill (offline)']);
+    const ruleBtn = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, ['Quick fill']);
     const photoIn = el('input', { attrs: { type: 'file', accept: 'image/*', capture: 'environment', 'aria-label': 'Scan a prescription photo' } });
-    const photoBtn = el('span', { className: 'btn btn--outline file-btn' }, [icon('camera'), 'Scan prescription', photoIn]);
+    const photoBtn = el('span', { className: 'btn btn--outline file-btn' }, [icon('camera'), 'Scan', photoIn]);
 
     const useRules = () => {
       const { fields, understood } = parsePrescription(quickIn.value);
       if (!fields.name && !fields.times) {
-        results.replaceChildren(el('p', { className: 'field__hint', text: 'Could not understand that. Try "Name strength 1-0-1 after food".' }));
+        results.replaceChildren(el('p', { className: 'field__hint', text: 'Not understood. Try "Name 500mg 1-0-1".' }));
         return;
       }
       applyFields(fields);
-      results.replaceChildren(el('p', { className: 'field__hint', text: `Understood: ${understood.join(' · ')}. Please check below and save.` }));
+      results.replaceChildren(el('p', { className: 'field__hint', text: `${understood.join(' · ')}. Check and save.` }));
     };
 
     /** Show AI results; one result fills the form, several get a pick list. */
     const showAiResults = (meds, source) => {
       if (!meds.length) {
-        results.replaceChildren(el('p', { className: 'field__hint', text: 'No medicines found. Try a clearer photo or type it in.' }));
+        results.replaceChildren(el('p', { className: 'field__hint', text: 'Nothing found. Try a clearer photo.' }));
         return;
       }
       applyFields(meds[0]);
       if (meds.length === 1) {
-        results.replaceChildren(el('p', { className: 'field__hint', text: `Gemini read this from your ${source}. Please check the details below, then save.` }));
+        results.replaceChildren(el('p', { className: 'field__hint', text: `Read by Gemini from your ${source}. Check and save.` }));
         return;
       }
       results.replaceChildren(
-        el('p', { className: 'field__hint', text: `Gemini found ${meds.length} medicines. The first one is filled in below; tap another to fill it instead. Save each one separately.` }),
+        el('p', { className: 'field__hint', text: `${meds.length} found. Tap one to fill, then save each.` }),
         el('div', { className: 'btn-row' }, meds.map((med) => el('button', {
           className: 'btn btn--sm btn--ghost', text: `${med.name} ${med.dosage}`.trim(), attrs: { type: 'button' },
           on: { click: () => applyFields(med) },
@@ -219,7 +219,7 @@ export function openMedicineDialog(existing) {
         showAiResults(await parseTextWithAi(quickIn.value), 'text');
       } catch (err) {
         useRules();
-        results.prepend(el('p', { className: 'field__hint', text: `${err.message} Used the offline reader instead.` }));
+        results.prepend(el('p', { className: 'field__hint', text: 'AI unavailable, used quick fill.' }));
       } finally {
         setLoading(aiBtn, false);
       }
@@ -227,18 +227,18 @@ export function openMedicineDialog(existing) {
     photoIn.addEventListener('change', async () => {
       const file = photoIn.files?.[0];
       if (!file) return;
-      results.replaceChildren(el('p', { className: 'field__hint' }, [el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true' } }), ' Reading the photo with Gemini…']));
+      results.replaceChildren(el('p', { className: 'field__hint' }, [el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true' } }), ' Reading photo…']));
       try {
         showAiResults(await parsePhotoWithAi(file), 'photo');
       } catch (err) {
-        results.replaceChildren(el('p', { className: 'field__hint', text: `${err.message} You can type the medicine instead.` }));
+        results.replaceChildren(el('p', { className: 'field__hint', text: err.message }));
       } finally {
         photoIn.value = '';
       }
     });
 
     quick = el('section', { className: 'quick-entry', attrs: { 'aria-label': 'Quick entry' } }, [
-      el('label', { text: 'Type it like the prescription', attrs: { for: 'quick-text' } }),
+      el('label', { text: 'Quick add', attrs: { for: 'quick-text' } }),
       quickIn,
       el('div', { className: 'btn-row' }, [aiBtn, ruleBtn, photoBtn]),
       results,
@@ -280,7 +280,7 @@ export function openMedicineDialog(existing) {
     try {
       await saveMedicine(med);
       dialog.close();
-      toast(existing ? `${med.name} updated.` : `${med.name} added for ${profile.name}.`);
+      toast(existing ? `${med.name} updated` : `${med.name} added`);
     } catch (err) {
       errorBox.replaceChildren(el('div', { className: 'banner banner--error' }, [el('p', { text: err.message })]));
     } finally {

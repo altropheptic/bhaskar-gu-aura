@@ -12,7 +12,7 @@ import '@fontsource-variable/lexend/wght.css';
 import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 import '../css/styles.css';
 
-import { el, openDialog, showBanner, clearBanner, toast } from './ui.js';
+import { el, openDialog, showBanner, toast } from './ui.js';
 import { store } from './store.js';
 import { isSupabaseConfigured } from './supabaseClient.js';
 import { state, subscribe, loadAll, selectProfile, currentProfile } from './state.js';
@@ -34,22 +34,12 @@ applySettings();
 /* ---------------- rendering ---------------- */
 
 function renderHeader() {
-  const sw = $('#profile-switch');
   const sel = /** @type {HTMLSelectElement} */ ($('#profile-select'));
-  const appVisible = !$('#app').hidden;
-  sw.hidden = !appVisible || !state.profiles.length;
+  $('#demo-chip').hidden = store.mode !== 'demo';
   sel.replaceChildren(
     ...state.profiles.map((p) => el('option', { text: p.name, attrs: { value: p.id, selected: p.id === state.profileId } })),
     el('option', { text: '+ Add a person', attrs: { value: '__new' } }),
   );
-}
-
-function renderDemoBar() {
-  if (store.mode === 'demo') {
-    showBanner('info', 'You are exploring the demo with sample data. Changes are not saved. Open Settings and choose "Exit demo" to start your own list.', { sticky: true, id: 'demo' });
-  } else {
-    clearBanner('demo');
-  }
 }
 
 function render() {
@@ -61,22 +51,28 @@ function render() {
 
 function showTab(tab) {
   state.tab = tab;
-  document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === tab)));
-  document.querySelectorAll('.panel').forEach((p) => { p.hidden = p.dataset.panel !== tab; });
+  document.querySelectorAll('.nav__item').forEach((t) => {
+    if (t.dataset.tab === tab) t.setAttribute('aria-current', 'page');
+    else t.removeAttribute('aria-current');
+  });
+  document.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== tab; });
+  window.scrollTo(0, 0);
   render();
 }
 
+/** Switch from the landing page to the app shell (and stop looking like a website). */
 function showApp() {
-  $('#welcome').hidden = true;
+  $('#landing').hidden = true;
   $('#app').hidden = false;
-  renderDemoBar();
+  document.body.classList.add('in-app');
   render();
   startReminders();
 }
 
 function showWelcome() {
-  $('#welcome').hidden = false;
+  $('#landing').hidden = false;
   $('#app').hidden = true;
+  document.body.classList.remove('in-app');
   renderHeader();
 }
 
@@ -92,14 +88,13 @@ async function startDemo() {
   await loadAll();
   showTab('today');
   showApp();
-  toast('Demo loaded. An alarm for Dadi will ring in about a minute.');
+  toast('Demo loaded · an alarm rings in about a minute');
 }
 
 async function exitDemo() {
   store.exitDemo();
   state.profileId = null;
   await loadAll();
-  renderDemoBar();
   if (state.profiles.length) { showTab('today'); showApp(); } else { showWelcome(); }
 }
 
@@ -129,27 +124,22 @@ function openSettings() {
   const voice = el('input', { attrs: { type: 'checkbox', checked: s.voice } });
   voice.addEventListener('change', () => setSettings({ voice: /** @type {HTMLInputElement} */ (voice).checked }));
 
-  const notifyBtn = el('button', { className: 'btn btn--outline', text: 'Allow alarm notifications', attrs: { type: 'button' } });
+  const notifyBtn = el('button', { className: 'btn btn--outline', text: 'Allow notifications', attrs: { type: 'button' } });
   notifyBtn.addEventListener('click', async () => {
     const result = await enableNotifications();
     toast(result === 'granted' ? 'Notifications are on.' : result === 'unsupported' ? 'This browser cannot show notifications.' : 'Notifications were not allowed.');
   });
-  const soundBtn = el('button', { className: 'btn btn--ghost', text: 'Test alarm sound', attrs: { type: 'button' }, on: { click: () => testChime() } });
+  const soundBtn = el('button', { className: 'btn btn--ghost', text: 'Test sound', attrs: { type: 'button' }, on: { click: () => testChime() } });
 
-  const modeText = {
-    cloud: 'Your list is saved privately online for this browser (no login needed).',
-    local: 'Your list is saved on this device only.',
-    demo: 'You are viewing sample data. Nothing is saved.',
-  }[store.mode];
+  const modeText = { cloud: 'Saved privately online', local: 'Saved on this device', demo: 'Demo · nothing is saved' }[store.mode];
 
   body.replaceChildren(
     radios('Text size', 'size', [['normal', 'Normal'], ['xl', 'Extra large']], s.size),
-    radios('Theme', 'theme', [['system', 'Match phone'], ['light', 'Light'], ['dark', 'Dark']], s.theme),
-    el('label', { className: 'check-row' }, [voice, 'Speak reminders aloud']),
+    radios('Theme', 'theme', [['system', 'Auto'], ['light', 'Light'], ['dark', 'Dark']], s.theme),
+    el('fieldset', {}, [el('legend', { text: 'Reminders' }), el('div', { className: 'check-row' }, [el('label', {}, [voice, 'Speak aloud'])])]),
     el('div', { className: 'btn-row' }, [notifyBtn, soundBtn]),
-    el('p', { className: 'field__hint', text: 'Alarms ring while Dawai Dost is open. For alarms when it is closed, use "Add alarms to phone calendar" in Family & safety.' }),
     el('hr'),
-    el('p', { text: modeText }),
+    el('p', { className: 'muted', text: modeText }),
     currentProfile() && el('button', { className: 'btn btn--ghost', text: `Edit ${currentProfile().name}'s details`, attrs: { type: 'button' }, on: { click: () => { dialog.close(); openProfileDialog(currentProfile()); } } }),
     store.mode === 'demo' && el('button', { className: 'btn btn--primary', text: 'Exit demo', attrs: { type: 'button' }, on: { click: () => { dialog.close(); exitDemo(); } } }),
   );
@@ -160,17 +150,9 @@ function openSettings() {
 $('#demo-btn').addEventListener('click', () => startDemo().catch((e) => showBanner('error', e.message)));
 $('#start-btn').addEventListener('click', startOwnList);
 $('#settings-btn').addEventListener('click', openSettings);
-document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
-document.querySelector('.tabs').addEventListener('keydown', (e) => {
-  // Arrow keys move between tabs (WAI-ARIA tabs pattern).
-  if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
-  const tabs = [...document.querySelectorAll('.tab')];
-  const i = tabs.indexOf(document.activeElement);
-  if (i < 0) return;
-  const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
-  next.focus();
-  showTab(next.dataset.tab);
-});
+$('#add-med-btn').addEventListener('click', () => openMedicineDialog());
+$('#demo-chip').addEventListener('click', () => exitDemo().catch((e) => showBanner('error', e.message)));
+document.querySelectorAll('.nav__item').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
 $('#profile-select').addEventListener('change', (e) => {
   const value = /** @type {HTMLSelectElement} */ (e.target).value;
   if (value === '__new') {
@@ -186,7 +168,7 @@ $('#profile-select').addEventListener('change', (e) => {
 (async function boot() {
   const { fellBack } = await store.init();
   if (fellBack && isSupabaseConfigured) {
-    showBanner('warn', "Couldn't reach the online service, so your list is being saved on this device. Everything still works.", { id: 'offline' });
+    showBanner('warn', 'Offline mode · saved on this device', { id: 'offline' });
   }
   if (store.mode === 'demo') return; // the user clicked the demo while we were connecting
   try {

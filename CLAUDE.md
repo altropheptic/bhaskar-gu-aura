@@ -21,6 +21,25 @@ When planning or reviewing work, say which criteria it serves; the README gets o
 
 **Design (owner-approved):** fonts Lexend (headings) + Atkinson Hyperlegible Next (body), self-hosted via Fontsource; palette "Neem & Marigold" (tokens in `css/styles.css`); custom duotone SVG icons in the sprite in `index.html`. Avoid AI-slop defaults (Inter/Poppins/etc., purple gradients, icon libraries, sparkle icons, emoji icons).
 
+**UI rules (owner, 21 Nov, round 2):** the app must look like an app, not a website. Landing (`#landing`) is short and static; once the demo or a list opens, `#landing` is hidden and the app shell (`#app`: sidebar ≥960px, bottom tab bar on phones, top bar with profile switch, demo chip and settings) takes over. Keep copy terse (labels, not paragraphs). 8px spacing scale (`--s1`…`--s8`), bordered cards only (no shadows, no nested cards), equal-width grids (`.grid-2`, 4-up `.stats`), card actions in `.card__foot`.
+
+### Progress log (keep updated)
+
+- Done:
+  - Supabase migration `dawai_dost_initial_schema` applied (4 tables, RLS); security advisor clean.
+  - All JS modules, `/api/ai` (Gemini), `/api/tts` (ElevenLabs), `/api/caregiver`, caregiver page, PWA, docs (README + `docs/*`).
+  - Commits `a865530` (build) and `46cdd4e` (docs).
+  - Verified in Chrome: demo, alarm, take/undo, quick fill, all tabs, one-tap mode, themes.
+  - API checks: 401 / 400 / 404 responses as designed.
+- Round-2 UI rework committed locally (see `git log`).
+  - App shell, terse copy, symmetric grids.
+  - Verified in Chrome on desktop and at 390px width (no horizontal overflow on any tab).
+- Waiting on owner:
+  - Enable Supabase anonymous sign-ins (until then the app runs in on-device "offline mode").
+  - Add `GEMINI_API_KEY` and `ELEVENLABS_API_KEY` in Vercel, then `npx vercel env pull .env.local`.
+  - After that: test AI, voice, cloud saving and caregiver links end-to-end.
+- Not yet: push/deploy (owner must approve), PWA offline test, print preview.
+
 ## Project facts
 
 - Live: https://bhaskar-gu-aura.vercel.app (push to `main` = production deploy in ~15 s; old hackathon-gu-aura.vercel.app redirects here).

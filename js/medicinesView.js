@@ -22,14 +22,14 @@ async function explain(med) {
   const dialog = /** @type {HTMLDialogElement} */ (document.getElementById('info-dialog'));
   const profile = currentProfile();
   const lang = profile?.language === 'hi' ? 'hi' : 'en';
-  const body = openDialog(dialog, `What is ${med.name} for?`, 'info-title');
+  const body = openDialog(dialog, med.name, 'info-title');
   const out = el('div', { attrs: { 'aria-live': 'polite' } }, [el('p', {}, [el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true' } }), ' Asking Gemini…'])]);
-  body.replaceChildren(out, el('p', { className: 'disclaimer', text: 'General information only, not medical advice. Always follow your own doctor or pharmacist.' }));
+  body.replaceChildren(out, el('p', { className: 'disclaimer', text: 'General information, not medical advice.' }));
   try {
     const text = await explainWithAi(med, lang);
     out.replaceChildren(el('div', { className: 'ai-text', text, attrs: { lang } }));
   } catch (err) {
-    out.replaceChildren(el('p', { text: `${err.message} You can ask your pharmacist what ${med.name} is for.` }));
+    out.replaceChildren(el('p', { text: `${err.message} Ask your pharmacist about ${med.name}.` }));
   }
 }
 
@@ -50,23 +50,22 @@ function medCard(med) {
     try { await deleteMedicine(med.id); toast(`${med.name} deleted.`); } catch (e) { showBanner('error', e.message); }
   });
 
+  const showGeneric = med.generic_name && med.generic_name.toLowerCase() !== med.name.toLowerCase();
   return el('article', { className: `card med${med.active ? '' : ' med--paused'}` }, [
     pillIcon(med),
     el('div', {}, [
       el('h3', { className: 'med__title', text: [med.name, med.dosage].filter(Boolean).join(' ') }),
-      med.generic_name && el('p', { className: 'med__sub', text: `Contains ${med.generic_name}` }),
-      el('p', { className: 'med__sub', text: `${doseLabel(med)} · ${MEAL_LABEL[med.meal] ?? ''} · ${daysText(med.days)}` }),
+      el('p', { className: 'med__sub', text: [showGeneric && med.generic_name, doseLabel(med), MEAL_LABEL[med.meal], daysText(med.days)].filter(Boolean).join(' · ') }),
     ]),
     el('div', { className: 'med__row' }, [
       ...med.times.map((t) => el('span', { className: 'chip' }, [icon('clock'), formatTime(t)])),
       !med.active && el('span', { className: 'chip chip--skipped', text: 'Paused' }),
       med.end_date && el('span', { className: 'chip chip--meal', text: `Until ${new Date(`${med.end_date}T00:00`).toLocaleDateString([], { day: 'numeric', month: 'short' })}` }),
     ]),
-    left !== null && el('p', { className: `supply${low ? ' supply--low' : ''}`, text: `${med.stock} in stock · about ${left} day${left === 1 ? '' : 's'} left${low ? ' · refill soon' : ''}` }),
-    med.notes && el('p', { className: 'med__sub', text: med.notes }),
+    left !== null && el('p', { className: `supply${low ? ' supply--low' : ''}`, text: `${med.stock} left · ${left} day${left === 1 ? '' : 's'}` }),
     el('div', { className: 'med__actions' }, [
-      el('button', { className: 'btn btn--outline btn--sm', text: 'Edit', attrs: { type: 'button' }, on: { click: () => openMedicineDialog(med) } }),
-      el('button', { className: 'btn btn--ghost btn--sm', attrs: { type: 'button' }, on: { click: () => explain(med) } }, [icon('book'), 'What is this for?']),
+      el('button', { className: 'btn btn--ghost btn--sm', text: 'Edit', attrs: { type: 'button' }, on: { click: () => openMedicineDialog(med) } }),
+      el('button', { className: 'btn btn--ghost btn--sm', attrs: { type: 'button' }, on: { click: () => explain(med) } }, [icon('book'), 'About']),
       pauseBtn,
       delBtn,
     ]),
@@ -76,19 +75,20 @@ function medCard(med) {
 /** @param {HTMLElement} panel */
 export function renderMedicines(panel) {
   const profile = currentProfile();
-  const addBtn = el('button', { className: 'btn btn--primary', attrs: { type: 'button' }, on: { click: () => openMedicineDialog() } }, [icon('plus'), 'Add medicine']);
+  // On desktop the sidebar already has "Add medicine", so this copy is phone-only.
+  const addBtn = el('button', { className: 'btn btn--primary mobile-only', attrs: { type: 'button' }, on: { click: () => openMedicineDialog() } }, [icon('plus'), 'Add']);
   const head = el('div', { className: 'panel-head' }, [
-    el('div', {}, [el('h2', { text: `${profile?.name ?? ''}'s medicines` }), el('p', { text: `${state.medicines.filter((m) => m.active).length} active` })]),
+    el('div', {}, [el('h2', { text: 'Medicines' }), el('p', { text: `${state.medicines.filter((m) => m.active).length} active · ${profile?.name ?? ''}` })]),
     addBtn,
   ]);
   if (!state.medicines.length) {
-    panel.replaceChildren(head, el('div', { className: 'card' }, [emptyState('Nothing here yet. Add a medicine by typing it like the prescription, or scan a photo.', { label: 'Add medicine', onClick: () => openMedicineDialog() })]));
+    panel.replaceChildren(head, el('div', { className: 'card' }, [emptyState('No medicines yet.', { label: 'Add medicine', onClick: () => openMedicineDialog() })]));
     return;
   }
   const dupes = duplicateGenerics(state.medicines);
-  const warn = dupes.length && el('div', { className: 'banner banner--warn', attrs: { role: 'note' } }, [
-    el('p', { text: dupes.map(([a, b]) => `${a.name} and ${b.name} contain the same medicine (${a.generic_name}).`).join(' ') + ' Ask your doctor whether both are needed.' }),
-  ]);
+  const warn = dupes.length && el('ul', { className: 'alert-list', attrs: { 'aria-label': 'Warnings' } }, dupes.map(([a, b]) => el('li', {}, [
+    icon('warn'), el('span', { text: `${a.name} and ${b.name} are both ${a.generic_name}. Ask your doctor.` }),
+  ])));
   const active = state.medicines.filter((m) => m.active);
   const paused = state.medicines.filter((m) => !m.active);
   panel.replaceChildren(

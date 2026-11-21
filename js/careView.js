@@ -1,6 +1,7 @@
 /**
- * Family & safety screen: caregiver links, WhatsApp summary, emergency card,
- * phone-calendar alarms and voice settings for the selected person.
+ * Family screen: four equal cards for caregiver sharing, emergency card,
+ * phone-calendar alarms and voice. Each card = icon + title, one short line,
+ * actions pinned to the bottom, so the 2×2 grid stays visually symmetric.
  */
 import { el, icon, showBanner, toast, setLoading } from './ui.js';
 import { state, currentProfile, loadProfileData } from './state.js';
@@ -12,40 +13,41 @@ import { downloadIcs } from './ics.js';
 import { openProfileDialog } from './profileDialog.js';
 import { speakReminder } from './voice.js';
 
-function caregiverCard(profile) {
-  const card = el('section', { className: 'card' }, [
-    el('h3', {}, ['Keep family in the loop']),
-    el('p', { className: 'muted', text: `Send today's status, or give a son, daughter or neighbour a private live view of ${profile.name}'s doses.` }),
+/** Shared card frame. */
+function card(iconName, title, line, body, actions) {
+  return el('section', { className: 'card' }, [
+    el('div', { className: 'card__head' }, [icon(iconName), el('h3', { text: title })]),
+    line && el('p', { className: 'muted', text: line }),
+    ...body,
+    actions?.length ? el('div', { className: 'card__foot' }, actions) : null,
   ]);
+}
 
-  const wa = el('button', { className: 'btn btn--primary', attrs: { type: 'button' } }, [icon('chat'), "Send today's update on WhatsApp"]);
+function familyCard(profile) {
+  const wa = el('button', { className: 'btn btn--primary', attrs: { type: 'button' } }, [icon('chat'), 'WhatsApp update']);
   wa.addEventListener('click', () => shareOnWhatsApp(todaySummaryText(profile, todayDoses())));
-  card.append(el('div', { className: 'btn-row' }, [wa]));
 
-  card.append(el('h3', { text: 'Caregiver link' }));
   if (store.mode !== 'cloud') {
-    card.append(el('p', { className: 'muted', text: store.mode === 'demo'
-      ? 'Caregiver links work with your own list (they are switched off in the demo). Exit the demo to create one.'
-      : 'Caregiver links need an internet connection. Your list is currently saved on this device only.' }));
-    return card;
+    const why = store.mode === 'demo' ? 'Live links are off in the demo.' : 'Live links need internet.';
+    return card('family', 'Family', `Share today's doses. ${why}`, [], [wa]);
   }
 
-  const labelIn = el('input', { attrs: { id: 'cg-label', maxlength: 40, placeholder: 'e.g. Priya (daughter)', autocomplete: 'off' } });
+  const labelIn = el('input', { attrs: { id: 'cg-label', maxlength: 40, placeholder: 'Name, e.g. Priya', autocomplete: 'off', 'aria-label': 'Who is the link for' } });
   const create = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('link'), 'Create link']);
-  const result = el('div', { attrs: { 'aria-live': 'polite' } });
+  const result = el('div', { className: 'stack', attrs: { 'aria-live': 'polite' } });
   create.addEventListener('click', async () => {
     setLoading(create, true, 'Creating…');
     try {
       const { url } = await createCaregiverLink(profile.id, labelIn.value.trim() || 'Family');
-      const copy = el('button', { className: 'btn btn--sm btn--primary', text: 'Copy link', attrs: { type: 'button' } });
+      const copy = el('button', { className: 'btn btn--sm btn--primary', text: 'Copy', attrs: { type: 'button' } });
       copy.addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(url); toast('Link copied.'); } catch { showBanner('info', 'Select the link and copy it.'); }
+        try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { showBanner('info', 'Select the link to copy it.'); }
       });
-      const send = el('button', { className: 'btn btn--sm btn--outline', attrs: { type: 'button' } }, [icon('chat'), 'Send on WhatsApp']);
-      send.addEventListener('click', () => shareOnWhatsApp(`See ${profile.name}'s medicines for today on Dawai Dost (read-only): ${url}`));
+      const send = el('button', { className: 'btn btn--sm btn--outline', attrs: { type: 'button' } }, [icon('chat'), 'Send']);
+      send.addEventListener('click', () => shareOnWhatsApp(`${profile.name}'s medicines today (read-only): ${url}`));
       result.replaceChildren(
-        el('p', { className: 'field__hint', text: 'Save or send it now. For privacy we only keep a scrambled copy, so it cannot be shown again.' }),
         el('p', { className: 'share-url', text: url }),
+        el('p', { className: 'field__hint', text: 'Shown once. Save it now.' }),
         el('div', { className: 'btn-row' }, [copy, send]),
       );
       labelIn.value = '';
@@ -57,67 +59,52 @@ function caregiverCard(profile) {
     }
   });
 
-  card.append(
-    el('div', { className: 'field' }, [el('label', { text: 'Who is it for?', attrs: { for: 'cg-label' } }), labelIn]),
-    el('div', { className: 'btn-row' }, [create]),
-    result,
-  );
-
   const active = state.links.filter((l) => !l.revoked && new Date(l.expires_at) > new Date());
-  if (active.length) {
-    card.append(el('ul', { className: 'link-list', attrs: { 'aria-label': 'Active caregiver links' } }, active.map((l) => {
-      const revoke = el('button', { className: 'btn btn--danger btn--sm', text: 'Turn off', attrs: { type: 'button' } });
-      revoke.addEventListener('click', async () => {
-        try { await store.revokeLink(l.id); await loadProfileData(); toast('Link turned off.'); } catch (e) { showBanner('error', e.message); }
-      });
-      return el('li', {}, [
-        el('span', { text: `${l.label || 'Family'} · expires ${new Date(l.expires_at).toLocaleDateString()}` }),
-        revoke,
-      ]);
-    })));
-  }
-  return card;
+  const list = active.length && el('ul', { className: 'link-list', attrs: { 'aria-label': 'Active links' } }, active.map((l) => {
+    const revoke = el('button', { className: 'btn btn--danger btn--sm', text: 'Turn off', attrs: { type: 'button' } });
+    revoke.addEventListener('click', async () => {
+      try { await store.revokeLink(l.id); await loadProfileData(); toast('Link turned off'); } catch (e) { showBanner('error', e.message); }
+    });
+    return el('li', {}, [el('span', { text: l.label || 'Family' }), revoke]);
+  }));
+
+  return card('family', 'Family', 'Private live view or a WhatsApp update.', [labelIn, result, list || null], [create, wa]);
 }
 
 function emergencyCard(profile) {
-  const line = (label, value) => el('p', {}, [el('strong', { text: `${label}: ` }), value || 'Not added']);
-  return el('section', { className: 'card' }, [
-    el('h3', { text: 'Emergency card' }),
-    line('Blood group', profile.blood_group),
-    line('Allergies', profile.allergies),
-    line('Conditions', profile.conditions),
-    line('Emergency contact', [profile.emergency_name, profile.emergency_phone].filter(Boolean).join(' · ')),
-    el('div', { className: 'btn-row' }, [
-      el('button', { className: 'btn btn--primary', attrs: { type: 'button' }, on: { click: () => printEmergencyCard() } }, [icon('print'), 'Print emergency card']),
-      el('button', { className: 'btn btn--ghost', text: 'Edit details', attrs: { type: 'button' }, on: { click: () => openProfileDialog(profile) } }),
+  const row = (k, v) => [el('dt', { text: k }), el('dd', { text: v || '—' })];
+  return card('warn', 'Emergency card', null, [
+    el('dl', { className: 'kv' }, [
+      ...row('Blood group', profile.blood_group),
+      ...row('Allergies', profile.allergies),
+      ...row('Conditions', profile.conditions),
+      ...row('Contact', [profile.emergency_name, profile.emergency_phone].filter(Boolean).join(' · ')),
     ]),
+  ], [
+    el('button', { className: 'btn btn--primary', attrs: { type: 'button' }, on: { click: () => printEmergencyCard() } }, [icon('print'), 'Print']),
+    el('button', { className: 'btn btn--ghost', text: 'Edit', attrs: { type: 'button' }, on: { click: () => openProfileDialog(profile) } }),
   ]);
 }
 
 function calendarCard(profile) {
-  const btn = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('calendar'), 'Add alarms to phone calendar']);
+  const btn = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('calendar'), 'Download']);
   btn.addEventListener('click', () => {
     if (!state.medicines.some((m) => m.active)) { showBanner('info', 'Add a medicine first.'); return; }
     downloadIcs(profile, state.medicines);
-    toast('Calendar file downloaded. Open it to add the alarms.');
+    toast('Open the file to add alarms');
   });
-  return el('section', { className: 'card' }, [
-    el('h3', { text: 'Alarms even when the browser is closed' }),
-    el('p', { className: 'muted', text: "Download the schedule and open it on the phone. The phone's own calendar will ring at every dose time. Do this again after changing medicines." }),
-    btn,
-  ]);
+  return card('calendar', 'Calendar alarms', 'Rings even when this app is closed.', [], [btn]);
 }
 
 function voiceCard(profile) {
-  const test = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('speaker'), 'Hear a sample reminder']);
+  const test = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('speaker'), 'Play sample']);
   test.addEventListener('click', () => {
     const med = state.medicines.find((m) => m.active) ?? { name: 'Metformin', dose_qty: 1, form: 'tablet', meal: 'after' };
     speakReminder(profile, [med], test, { force: true });
   });
-  return el('section', { className: 'card' }, [
-    el('h3', { text: 'Voice reminders' }),
-    el('p', { className: 'muted', text: `Reminders are spoken in ${profile.language === 'hi' ? 'Hindi' : 'English'} using a natural ElevenLabs voice (the phone's own voice is used if offline). Change the language with "Edit details".` }),
+  return card('speaker', 'Voice', `Reminders in ${profile.language === 'hi' ? 'Hindi' : 'English'}.`, [], [
     test,
+    el('button', { className: 'btn btn--ghost', text: 'Change', attrs: { type: 'button' }, on: { click: () => openProfileDialog(profile) } }),
   ]);
 }
 
@@ -127,8 +114,8 @@ export function renderCare(panel) {
   if (!profile) { panel.replaceChildren(); return; }
   panel.replaceChildren(
     el('div', { className: 'panel-head' }, [
-      el('div', {}, [el('h2', { text: 'Family & safety' }), el('p', { text: `For ${profile.name}` })]),
+      el('div', {}, [el('h2', { text: 'Family & safety' }), el('p', { text: profile.name })]),
     ]),
-    el('div', { className: 'care-grid' }, [caregiverCard(profile), emergencyCard(profile), calendarCard(profile), voiceCard(profile)]),
+    el('div', { className: 'grid-2' }, [familyCard(profile), emergencyCard(profile), calendarCard(profile), voiceCard(profile)]),
   );
 }

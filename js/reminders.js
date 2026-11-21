@@ -89,13 +89,13 @@ function ring(doses) {
     for (const d of doses) await takeOrSkip(d, 'taken');
     close();
   });
-  const snooze = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('clock'), `Remind me in ${SNOOZE_MIN} min`]);
+  const snooze = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('clock'), `${SNOOZE_MIN} min`]);
   snooze.addEventListener('click', () => {
     for (const d of doses) { snoozed.set(d.key, Date.now() + SNOOZE_MIN * 60_000); fired.delete(d.key); }
     saveFired();
     close();
   });
-  const again = el('button', { className: 'btn btn--ghost', attrs: { type: 'button' } }, [icon('speaker'), 'Say again']);
+  const again = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('speaker'), 'Repeat']);
   again.addEventListener('click', () => speakReminder(profile, doses.map((d) => d.med), again, { force: true }));
 
   dialog.replaceChildren(el('div', { className: 'dialog__inner' }, [
@@ -110,7 +110,7 @@ function ring(doses) {
       ]),
     ]))),
     takeAll,
-    el('div', { className: 'btn-row' }, [snooze, again]),
+    el('div', { className: 'alarm__row' }, [snooze, again]),
   ]));
   dialog.addEventListener('close', stopChime, { once: true });
   if (!dialog.open) dialog.showModal();

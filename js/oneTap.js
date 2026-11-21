@@ -31,7 +31,7 @@ function render() {
       icon('check'), el('span', { text: 'I took it' }), el('span', { text: ' · ले ली', attrs: { lang: 'hi' } }),
     ]);
     go.addEventListener('click', () => takeOrSkip(now, 'taken', go));
-    const say = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('speaker'), 'Say it aloud']);
+    const say = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('speaker'), 'Say aloud']);
     say.addEventListener('click', () => speakReminder(profile, [now.med], say, { force: true }));
     body = [
       el('p', { className: 'big-time', text: now.status === 'missed' ? `Missed at ${formatTime(now.time)}` : `Now · ${formatTime(now.time)}` }),
@@ -45,7 +45,7 @@ function render() {
     body = [
       el('div', { className: 'alarm__ring' }, [icon('check')]),
       el('h2', { className: 'onetap__name', text: 'All done for now', attrs: { id: 'onetap-title' } }),
-      el('p', { className: 'onetap__how', text: later ? `Next: ${later.med.name} at ${formatTime(later.time)}` : 'No more medicines today.' }),
+      el('p', { className: 'onetap__how', text: later ? `Next: ${later.med.name} at ${formatTime(later.time)}` : 'Nothing more today' }),
     ];
   }
   d.replaceChildren(el('div', { className: 'onetap' }, [close, ...body]));

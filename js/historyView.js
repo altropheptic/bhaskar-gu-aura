@@ -25,11 +25,11 @@ function cellFor(med, day, now) {
 }
 
 function encouragement(pct, days) {
-  if (pct === null) return 'Your progress will appear here after the first doses.';
-  if (days >= 7) return `${days} days in a row! That consistency really protects your health.`;
-  if (pct >= 90) return 'Excellent! Nearly every dose taken this week.';
-  if (pct >= 70) return 'Good going. A few doses slipped; the alarm and one-tap mode can help.';
-  return 'Every dose counts. Try turning on voice reminders and one-tap mode, and ask family to check in.';
+  if (pct === null) return 'Progress appears after the first doses.';
+  if (days >= 7) return `${days} days in a row. Wonderful.`;
+  if (pct >= 90) return 'Excellent week. Keep it up.';
+  if (pct >= 70) return 'Good going. One-tap mode can help.';
+  return 'Every dose counts. Try voice reminders.';
 }
 
 /** @param {HTMLElement} panel */
@@ -37,11 +37,11 @@ export function renderHistory(panel) {
   const profile = currentProfile();
   const now = new Date();
   const head = el('div', { className: 'panel-head' }, [
-    el('div', {}, [el('h2', { text: `${profile?.name ?? ''}'s progress` }), el('p', { text: 'Last 14 days' })]),
+    el('div', {}, [el('h2', { text: 'Progress' }), el('p', { text: `Last 14 days · ${profile?.name ?? ''}` })]),
     el('button', { className: 'btn btn--outline', attrs: { type: 'button' }, on: { click: () => printDoctorReport() } }, [icon('print'), 'Doctor report']),
   ]);
   if (!state.medicines.length) {
-    panel.replaceChildren(head, el('div', { className: 'card' }, [emptyState('Add medicines to start tracking progress.')]));
+    panel.replaceChildren(head, el('div', { className: 'card' }, [emptyState('No medicines yet.')]));
     return;
   }
 
@@ -58,16 +58,16 @@ export function renderHistory(panel) {
 
   const stat = (value, label) => el('div', { className: 'stat' }, [el('p', { className: 'stat__value tabular', text: value }), el('p', { className: 'stat__label', text: label })]);
   const stats = el('div', { className: 'stats' }, [
-    stat(week === null ? '–' : `${week}%`, 'Taken this week'),
-    stat(fortnight === null ? '–' : `${fortnight}%`, 'Taken in 14 days'),
-    stat(`${days}`, days === 1 ? 'Day in a row' : 'Days in a row'),
-    stat(`${missedWeek}`, 'Missed or skipped (7 days)'),
+    stat(week === null ? '–' : `${week}%`, '7-day adherence'),
+    stat(fortnight === null ? '–' : `${fortnight}%`, '14-day adherence'),
+    stat(`${days}`, 'Day streak'),
+    stat(`${missedWeek}`, 'Missed (7 days)'),
   ]);
 
   const badgeDefs = [[3, '3-day streak'], [7, 'Perfect week'], [14, 'Two strong weeks'], [30, 'Month of care']];
   const badges = el('div', { className: 'badges', attrs: { 'aria-label': 'Streak badges' } }, badgeDefs.map(([n, label]) => el('span', {
     className: `badge${days >= n ? ' badge--earned' : ''}`,
-    text: days >= n ? `✓ ${label}` : label,
+    text: label,
     attrs: { 'aria-label': `${label}: ${days >= n ? 'earned' : 'not yet earned'}` },
   })));
 
@@ -90,9 +90,9 @@ export function renderHistory(panel) {
   ]);
   const legend = el('div', { className: 'legend' }, [
     el('span', {}, [el('span', { className: 'cell cell--full' }, [icon('check')]), 'All taken']),
-    el('span', {}, [el('span', { className: 'cell cell--part' }, [icon('skip')]), 'Some taken']),
+    el('span', {}, [el('span', { className: 'cell cell--part' }, [icon('skip')]), 'Some']),
     el('span', {}, [el('span', { className: 'cell cell--none' }, [icon('cross')]), 'Missed']),
-    el('span', {}, [el('span', { className: 'cell' }), 'Not scheduled / not due']),
+    el('span', {}, [el('span', { className: 'cell' }), 'None due']),
   ]);
 
   const perMed = el('ul', { className: 'per-med' }, perMedicine(state.medicines, state.logIndex, 14, now).map(({ med, pct }) => {
@@ -108,8 +108,10 @@ export function renderHistory(panel) {
     head,
     stats,
     el('p', { className: 'encourage', text: encouragement(week, days) }),
-    el('section', { className: 'card' }, [el('h3', { text: 'Streak badges' }), badges]),
     el('section', { className: 'card' }, [el('h3', { text: 'Day by day' }), el('div', { className: 'grid-wrap' }, [table]), legend]),
-    el('section', { className: 'card' }, [el('h3', { text: 'By medicine (14 days)' }), perMed]),
+    el('div', { className: 'grid-2' }, [
+      el('section', { className: 'card' }, [el('h3', { text: 'By medicine' }), perMed]),
+      el('section', { className: 'card' }, [el('h3', { text: 'Badges' }), badges]),
+    ]),
   );
 }

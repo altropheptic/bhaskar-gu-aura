@@ -29,7 +29,7 @@ function validate(p) {
 export function openProfileDialog(existing, { onSaved } = {}) {
   const dialog = /** @type {HTMLDialogElement} */ (document.getElementById('profile-dialog'));
   const p = existing ?? { name: '', age: null, language: 'en', blood_group: '', allergies: '', conditions: '', emergency_name: '', emergency_phone: '' };
-  const body = openDialog(dialog, existing ? `Edit ${existing.name}` : 'Who takes these medicines?', 'profile-title');
+  const body = openDialog(dialog, existing ? `Edit ${existing.name}` : 'Add a person', 'profile-title');
 
   const input = (name, label, attrs = {}, hint) => {
     const id = `pf-${name}`;
@@ -43,11 +43,11 @@ export function openProfileDialog(existing, { onSaved } = {}) {
   const saveBtn = el('button', { className: 'btn btn--primary btn--xl', text: existing ? 'Save' : 'Continue', attrs: { type: 'submit' } });
 
   const form = el('form', { attrs: { novalidate: true } }, [
-    input('name', 'Name or what you call them', { maxlength: 40, required: true, placeholder: 'e.g. Dadi, Papa, Mrs. Das' }),
+    input('name', 'Name', { maxlength: 40, required: true, placeholder: 'Dadi, Papa, Mrs. Das' }),
     el('div', { className: 'field-grid' }, [
       input('age', 'Age', { type: 'number', min: 0, max: 120, inputmode: 'numeric' }),
       el('div', { className: 'field' }, [
-        el('label', { text: 'Voice reminder language', attrs: { for: 'pf-language' } }),
+        el('label', { text: 'Voice language', attrs: { for: 'pf-language' } }),
         el('select', { attrs: { id: 'pf-language', name: 'language' } }, [
           el('option', { text: 'English', attrs: { value: 'en', selected: p.language === 'en' } }),
           el('option', { text: 'हिन्दी (Hindi)', attrs: { value: 'hi', selected: p.language === 'hi' } }),
@@ -55,7 +55,7 @@ export function openProfileDialog(existing, { onSaved } = {}) {
       ]),
     ]),
     el('details', { attrs: { open: Boolean(existing) } }, [
-      el('summary', { text: 'Emergency details (optional, for the emergency card)' }),
+      el('summary', { text: 'Emergency details (optional)' }),
       el('div', { className: 'field-grid' }, [
         el('div', { className: 'field' }, [
           el('label', { text: 'Blood group', attrs: { for: 'pf-blood' } }),
@@ -63,9 +63,9 @@ export function openProfileDialog(existing, { onSaved } = {}) {
         ]),
         input('emergency_phone', 'Emergency phone', { maxlength: 20, inputmode: 'tel', type: 'tel' }),
       ]),
-      input('emergency_name', 'Emergency contact name', { maxlength: 40 }),
+      input('emergency_name', 'Emergency contact', { maxlength: 40 }),
       input('allergies', 'Allergies', { maxlength: 200 }),
-      input('conditions', 'Health conditions', { maxlength: 200 }),
+      input('conditions', 'Conditions', { maxlength: 200 }),
     ]),
     errorBox,
     el('div', { className: 'dialog__foot' }, [

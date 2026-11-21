@@ -54,7 +54,7 @@ function doseRow(dose) {
       ]),
     ]),
     actions,
-    status === 'missed' && el('p', { className: 'dose__note', text: 'Missed. Do not take two doses together to catch up. If unsure, ask your pharmacist.' }),
+    status === 'missed' && el('p', { className: 'dose__note', text: "Missed. Don't take two at once." }),
   ]);
 }
 
@@ -64,17 +64,15 @@ function alerts() {
     const left = daysOfSupply(med);
     if (left !== null && left <= med.refill_at) {
       items.push(left <= 0
-        ? `${med.name} has run out. Refill it today.`
-        : `${med.name}: about ${left} day${left === 1 ? '' : 's'} left. Time to refill.`);
+        ? `${med.name} has run out`
+        : `${med.name}: ${left} day${left === 1 ? '' : 's'} left, refill soon`);
     }
   }
   for (const [a, b] of duplicateGenerics(state.medicines)) {
-    items.push(`${a.name} and ${b.name} both contain ${a.generic_name}. Taking both may be a double dose. Check with your doctor.`);
+    items.push(`${a.name} and ${b.name} are both ${a.generic_name}. Ask your doctor.`);
   }
   if (!items.length) return null;
-  return el('section', { className: 'card', attrs: { 'aria-label': 'Warnings' } }, [
-    el('ul', { className: 'alert-list' }, items.map((t) => el('li', {}, [icon('warn'), el('span', { text: t })]))),
-  ]);
+  return el('ul', { className: 'alert-list', attrs: { 'aria-label': 'Warnings' } }, items.map((t) => el('li', {}, [icon('warn'), el('span', { text: t })])));
 }
 
 /** @param {HTMLElement} panel */
@@ -85,18 +83,16 @@ export function renderToday(panel) {
   const done = doses.filter((d) => d.status === 'taken').length;
   const pct = doses.length ? Math.round((done / doses.length) * 100) : 0;
   const next = doses.find((d) => d.status === 'due' || d.status === 'upcoming');
+  const missedCount = doses.filter((d) => d.status === 'missed').length;
 
   const dateText = now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' });
   const head = el('div', { className: 'panel-head' }, [
-    el('div', {}, [el('h2', { text: `${profile?.name ?? 'Today'}'s medicines` }), el('p', { text: dateText })]),
-    el('div', { className: 'btn-row' }, [
-      el('button', { className: 'btn btn--accent', attrs: { type: 'button' }, on: { click: () => openOneTap() } }, ['One-tap big mode']),
-    ]),
+    el('div', {}, [el('h2', { text: 'Today' }), el('p', { text: dateText })]),
   ]);
 
   if (!state.medicines.length) {
     panel.replaceChildren(head, el('div', { className: 'card' }, [
-      emptyState(`No medicines added for ${profile?.name ?? 'this person'} yet.`, { label: 'Add the first medicine', onClick: () => openMedicineDialog() }),
+      emptyState('No medicines yet.', { label: 'Add medicine', onClick: () => openMedicineDialog() }),
     ]));
     return;
   }
@@ -106,21 +102,22 @@ export function renderToday(panel) {
 
   const nextText = next
     ? next.status === 'due' ? `Now: ${next.med.name}` : `Next: ${next.med.name} at ${formatTime(next.time)}`
-    : doses.length ? 'All done for today. Well done!' : 'Nothing scheduled today.';
+    : missedCount ? `${missedCount} missed today` : doses.length ? 'All done for today' : 'Nothing scheduled today';
 
-  const speakBtn = next && el('button', { className: 'btn btn--outline btn--sm', attrs: { type: 'button' } }, [icon('speaker'), 'Say it aloud']);
-  speakBtn?.addEventListener('click', () => speakReminder(profile, [next.med], speakBtn));
+  const speakBtn = el('button', { className: 'btn btn--outline', attrs: { type: 'button', disabled: !next } }, [icon('speaker'), 'Say aloud']);
+  speakBtn.addEventListener('click', () => next && speakReminder(profile, [next.med], speakBtn, { force: true }));
+  const bigBtn = el('button', { className: 'btn btn--accent', attrs: { type: 'button' }, on: { click: () => openOneTap() } }, ['One-tap mode']);
 
   const summary = el('section', { className: 'card summary', attrs: { 'aria-label': 'Today summary' } }, [
     ring,
     el('div', {}, [
       el('p', { className: 'next-dose', text: nextText }),
-      el('p', { className: 'muted', text: `${done} of ${doses.length} doses taken today` }),
-      speakBtn,
+      el('p', { className: 'summary__sub', text: `${done} of ${doses.length} taken` }),
     ]),
+    el('div', { className: 'summary__actions' }, [speakBtn, bigBtn]),
   ]);
 
-  const timeline = el('section', { attrs: { 'aria-label': 'Today timeline' } });
+  const timeline = el('section', { className: 'stack', attrs: { 'aria-label': 'Today timeline' } });
   if (!doses.length) timeline.append(el('div', { className: 'card' }, [emptyState('No doses scheduled for today.')]));
   for (const [time, group] of groupByTime(doses)) {
     timeline.append(el('div', { className: 'slot' }, [

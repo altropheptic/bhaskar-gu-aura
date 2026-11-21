@@ -25,14 +25,14 @@ export async function takeOrSkip(dose, status, button) {
   if (button) button.disabled = true;
   try {
     const log = await logDose(dose, status);
-    toast(status === 'taken' ? `${dose.med.name} marked as taken at ${formatClock(log.logged_at)}.` : `${dose.med.name} skipped.`, {
+    toast(status === 'taken' ? `${dose.med.name} taken at ${formatClock(log.logged_at)}` : `${dose.med.name} skipped`, {
       label: 'Undo',
       onClick: () => undoDose(log).catch((e) => showBanner('error', e.message)),
     });
     return true;
   } catch (err) {
     if (err instanceof DuplicateDoseError) {
-      showBanner('warn', `${dose.med.name} for ${formatTime(dose.time)} was already logged. No need to take it again.`);
+      showBanner('warn', `${dose.med.name} (${formatTime(dose.time)}) is already logged. Don't take it again.`);
     } else {
       showBanner('error', err.message || 'Something went wrong. Please try again.');
     }
