@@ -54,27 +54,71 @@ export const doseKey = (medicineId, when) => `${medicineId}|${new Date(when).get
  * All doses for one day, sorted by time.
  * @param {any[]} medicines
  * @param {Date} day
- * @returns {{ med: any, time: string, at: Date, iso: string, key: string }[]}
+ * @returns {{ med: any, time: string, slot: string, at: Date, iso: string, key: string }[]}
  */
 export function dosesForDay(medicines, day) {
   const out = [];
   for (const med of medicines) {
     if (!isScheduledOn(med, day)) continue;
-    for (const time of med.times) {
+    med.times.forEach((time, i) => {
       const [h, m] = time.split(':').map(Number);
       const at = new Date(day);
       at.setHours(h, m, 0, 0);
-      out.push({ med, time, at, iso: at.toISOString(), key: doseKey(med.id, at) });
-    }
+      out.push({ med, time, slot: med.slots?.[i] ?? 'custom', at, iso: at.toISOString(), key: doseKey(med.id, at) });
+    });
   }
   return out.sort((a, b) => a.at - b.at || a.med.name.localeCompare(b.med.name));
 }
 
-/** Map of doseKey -> log row. @param {any[]} logs */
+const hhmm = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+const minutesOf = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+/** How far a re-timed dose may be from its original log and still match it. */
+const RETIME_WINDOW_MIN = 180;
+
+/**
+ * Index of logs: exact doseKey -> log, plus logs grouped by medicine and day.
+ * @param {any[]} logs
+ */
 export function indexLogs(logs) {
   const map = new Map();
-  for (const log of logs) map.set(doseKey(log.medicine_id, log.scheduled_for), log);
+  map.byMedDay = new Map();
+  for (const log of logs) {
+    map.set(doseKey(log.medicine_id, log.scheduled_for), log);
+    const at = new Date(log.scheduled_for);
+    const k = `${log.medicine_id}|${isoDate(at)}`;
+    if (!map.byMedDay.has(k)) map.byMedDay.set(k, []);
+    map.byMedDay.get(k).push({ log, time: hhmm(at) });
+  }
   return map;
+}
+
+/**
+ * The log for a dose. Exact match first. If the medicine's time was changed
+ * (for example its routine moved breakfast from 8:00 to 9:00), earlier logs no
+ * longer match exactly, so a dose also claims an "orphan" log of the same
+ * medicine on the same day: one whose time is no longer in the schedule, that is
+ * within 3 hours, and for which this dose is the nearest scheduled time. That
+ * keeps history and today's "taken" state correct after re-timing, without ever
+ * letting one log count for two doses.
+ */
+export function findLog(dose, logIndex) {
+  const exact = logIndex.get(dose.key);
+  if (exact) return exact;
+  const list = logIndex.byMedDay?.get(`${dose.med.id}|${isoDate(dose.at)}`);
+  if (!list) return undefined;
+  const times = dose.med.times;
+  let best;
+  let bestDiff = Infinity;
+  for (const { log, time } of list) {
+    if (times.includes(time)) continue; // matches a current dose exactly: not an orphan
+    const diff = Math.abs(minutesOf(time) - minutesOf(dose.time));
+    if (diff > RETIME_WINDOW_MIN || diff >= bestDiff) continue;
+    const nearest = times.reduce((a, t) => (Math.abs(minutesOf(t) - minutesOf(time)) < Math.abs(minutesOf(a) - minutesOf(time)) ? t : a), times[0]);
+    if (nearest !== dose.time) continue;
+    best = log;
+    bestDiff = diff;
+  }
+  return best;
 }
 
 /**
@@ -82,7 +126,7 @@ export function indexLogs(logs) {
  * @returns {'taken' | 'skipped' | 'missed' | 'due' | 'upcoming'}
  */
 export function doseStatus(dose, logIndex, now = new Date()) {
-  const log = logIndex.get(dose.key);
+  const log = findLog(dose, logIndex);
   if (log) return log.status;
   const diffMin = (now - dose.at) / MS_MIN;
   if (diffMin > MISSED_AFTER_MIN) return 'missed';

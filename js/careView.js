@@ -1,17 +1,18 @@
 /**
- * Family screen: four equal cards for caregiver sharing, emergency card,
- * phone-calendar alarms and voice. Each card = icon + title, one short line,
- * actions pinned to the bottom, so the 2×2 grid stays visually symmetric.
+ * Family & safety screen: four equal cards in a 2×2 grid:
+ * caregiver sharing, emergency card, daily routine and the reminder check
+ * (which also covers calendar alarms and voice). Each card = icon + title,
+ * short content, actions pinned to the bottom.
  */
-import { el, icon, showBanner, toast, setLoading } from './ui.js';
+import { el, icon, showBanner, toast, setLoading, formatTime } from './ui.js';
 import { state, currentProfile, loadProfileData } from './state.js';
 import { store } from './store.js';
 import { todayDoses } from './doseActions.js';
 import { todaySummaryText, shareOnWhatsApp, createCaregiverLink } from './share.js';
 import { printEmergencyCard } from './reports.js';
-import { downloadIcs } from './ics.js';
 import { openProfileDialog } from './profileDialog.js';
-import { speakReminder } from './voice.js';
+import { healthCard } from './reminderHealth.js';
+import { SLOTS, SLOT_LABEL, ROUTINE_FIELDS, routineOf } from './routine.js';
 
 /** Shared card frame. */
 function card(iconName, title, line, body, actions) {
@@ -86,25 +87,12 @@ function emergencyCard(profile) {
   ]);
 }
 
-function calendarCard(profile) {
-  const btn = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('calendar'), 'Download']);
-  btn.addEventListener('click', () => {
-    if (!state.medicines.some((m) => m.active)) { showBanner('info', 'Add a medicine first.'); return; }
-    downloadIcs(profile, state.medicines);
-    toast('Open the file to add alarms');
-  });
-  return card('calendar', 'Calendar alarms', 'Rings even when this app is closed.', [], [btn]);
-}
-
-function voiceCard(profile) {
-  const test = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('speaker'), 'Play sample']);
-  test.addEventListener('click', () => {
-    const med = state.medicines.find((m) => m.active) ?? { name: 'Metformin', dose_qty: 1, form: 'tablet', meal: 'after' };
-    speakReminder(profile, [med], test, { force: true });
-  });
-  return card('speaker', 'Voice', `Reminders in ${profile.language === 'hi' ? 'Hindi' : 'English'}.`, [], [
-    test,
-    el('button', { className: 'btn btn--ghost', text: 'Change', attrs: { type: 'button' }, on: { click: () => openProfileDialog(profile) } }),
+function routineCard(profile) {
+  const r = routineOf(profile);
+  return card('clock', 'Daily routine', 'Doses follow these moments.', [
+    el('dl', { className: 'kv' }, SLOTS.flatMap((s) => [el('dt', { text: SLOT_LABEL[s] }), el('dd', { className: 'tabular', text: formatTime(r[ROUTINE_FIELDS[s]]) })])),
+  ], [
+    el('button', { className: 'btn btn--outline', text: 'Change routine', attrs: { type: 'button' }, on: { click: () => openProfileDialog(profile) } }),
   ]);
 }
 
@@ -116,6 +104,6 @@ export function renderCare(panel) {
     el('div', { className: 'panel-head' }, [
       el('div', {}, [el('h2', { text: 'Family & safety' }), el('p', { text: profile.name })]),
     ]),
-    el('div', { className: 'grid-2' }, [familyCard(profile), emergencyCard(profile), calendarCard(profile), voiceCard(profile)]),
+    el('div', { className: 'grid-2' }, [healthCard(), routineCard(profile), familyCard(profile), emergencyCard(profile)]),
   );
 }

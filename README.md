@@ -24,7 +24,12 @@ To start your own list, click **Start my own list**. Your data is private to you
 
 - **Built for Indian prescriptions.** Type the doctor's shorthand (`1-0-1`, `OD`, `BD`, `HS`, `after food x 5 days`) and the schedule fills itself. A rule-based parser runs offline; Google **Gemini** handles messy text and **prescription photos**.
 - **Reminders in the elder's language.** At dose time the app speaks the reminder in Hindi or English with a natural **ElevenLabs** voice. The browser's own voice takes over if the service is unreachable.
-- **Pill recognition by sight.** Every medicine is drawn in its real colour and shape, so "the small pink oval one" is unmistakable.
+- **Routine-based reminders, not just clock alarms.** Research on how people actually remember medicines found that daily routines and place cues beat timers, and that two cues beat one ([Stawarz et al. 2014](https://discovery.ucl.ac.uk/id/eprint/1418104), [2016](https://discovery.ucl.ac.uk/1522125/7/Stawarz_2055207616678707.pdf)).
+  - Each elder sets their own breakfast/lunch/dinner/bed times, and doses attach to "after breakfast".
+  - When the routine shifts, every dose moves with it.
+  - Each medicine can record where it is kept ("steel dabba, dining table"), shown and spoken at reminder time.
+- **Reminder health check.** The #1 complaint about reminder apps is that alerts silently stop. One card shows whether sound, voice, notifications, calendar alarms and the home-screen app are working, each with a one-tap fix.
+- **Pill recognition by sight.** Every medicine is drawn in its real colour and shape, or shown with a photo of its strip, so "the small pink oval one" is unmistakable.
 - **One-tap big mode.** A full-screen view with one pill, one sentence and one button: "I took it · ले ली".
 - **Double-dose guard in the database.** A `UNIQUE(medicine_id, scheduled_for)` constraint means the same dose can never be logged twice, even from two phones.
 - **Duplicate-molecule warning.** It warns when two brands contain the same generic drug, for example Dolo 650 and Crocin are both paracetamol.
@@ -59,7 +64,9 @@ Sources:
 ## Website Functionality
 
 - **Today:** live timeline (due, taken, missed, upcoming), progress ring, next dose, refill and duplicate warnings, Take / Skip / Undo.
-- **Medicines:** add, edit, pause and delete. Quick entry (offline parser or Gemini), photo scan, "What is this for?" (Gemini, in Hindi or English).
+- **Medicines:** add, edit, pause and delete.
+  - Quick entry (offline parser or Gemini), prescription scan (Gemini also reads the doctor's name), "What is this for?" (Gemini, in Hindi or English).
+  - Routine chips instead of time pickers; medicine photo, "kept at" place and prescribing doctor.
 - **Progress:** 7- and 14-day adherence, streak, badges, 14-day grid per medicine, printable doctor report.
 - **Family & safety:** WhatsApp summary, caregiver link (create, copy, revoke), emergency card, `.ics` calendar alarms, voice test.
 - **Profiles:** several elders on one phone, each with their own voice language.

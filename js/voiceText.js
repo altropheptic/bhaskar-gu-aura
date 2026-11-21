@@ -27,7 +27,7 @@ function qtyWords(qty, lang) {
 
 /**
  * Build the reminder sentence.
- * @param {{ lang: 'en' | 'hi', person: string, medicines: { name: string, qty: number, form: string, meal: string }[] }} input
+ * @param {{ lang: 'en' | 'hi', person: string, medicines: { name: string, qty: number, form: string, meal: string, place?: string }[] }} input
  * @returns {string}
  */
 export function reminderText({ lang, person, medicines }) {
@@ -39,6 +39,10 @@ export function reminderText({ lang, person, medicines }) {
     return L === 'hi'
       ? [m.name, `${qtyWords(m.qty, L)} ${unit}`, meal].filter(Boolean).join(', ')
       : `${qtyWords(m.qty, L)} ${unit} of ${m.name}${meal ? `, ${meal}` : ''}`;
+  }).map((text, i) => {
+    const place = medicines[i].place;
+    if (!place) return text;
+    return L === 'hi' ? `${text}। यह ${place} में रखी है` : `${text}. It is kept at ${place}`;
   });
   if (L === 'hi') {
     return `${person ? `${person}, ` : ''}दवाई का समय हो गया है। ${parts.join('। फिर, ')}।`;

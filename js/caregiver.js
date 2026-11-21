@@ -10,7 +10,7 @@ import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 import '../css/styles.css';
 
 import { el, icon, pillIcon, formatTime, formatClock, doseLabel, MEAL_LABEL } from './ui.js';
-import { dosesForDay, doseStatus, indexLogs, daysOfSupply } from './schedule.js';
+import { dosesForDay, doseStatus, indexLogs, findLog, daysOfSupply } from './schedule.js';
 import { applySettings } from './settings.js';
 
 applySettings();
@@ -59,7 +59,7 @@ function render(data) {
         el('div', { className: 'dose__name', text: [d.med.name, d.med.dosage].filter(Boolean).join(' ') }),
         el('div', { className: 'dose__meta' }, [el('span', { text: `${formatTime(d.time)} · ${doseLabel(d.med)}` }), el('span', { className: 'chip chip--meal', text: MEAL_LABEL[d.med.meal] ?? '' })]),
       ]),
-      el('div', { className: 'dose__actions' }, [CHIP[d.status](logIndex.get(d.key), d)]),
+      el('div', { className: 'dose__actions' }, [CHIP[d.status](findLog(d, logIndex), d)]),
     ]))),
     el('p', { className: 'disclaimer', text: 'Read-only view. The family member who shared this link can turn it off at any time.' }),
   );

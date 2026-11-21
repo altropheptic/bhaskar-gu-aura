@@ -15,6 +15,7 @@ import { currentProfile, state } from './state.js';
 import { todayDoses, takeOrSkip } from './doseActions.js';
 import { speakReminder } from './voice.js';
 import { MISSED_AFTER_MIN, isoDate } from './schedule.js';
+import { medMedia } from './photo.js';
 
 const SNOOZE_MIN = 10;
 const firedKey = () => `dawai-dost-fired-${isoDate(new Date())}`;
@@ -35,7 +36,7 @@ function saveFired() {
 
 /** Browsers only allow sound after a user gesture, so unlock audio on the first tap. */
 function unlockAudio() {
-  if (audioCtx) return;
+  if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
   const Ctx = window.AudioContext || window.webkitAudioContext;
   if (Ctx) audioCtx = new Ctx();
 }
@@ -103,10 +104,11 @@ function ring(doses) {
     el('h2', { text: `${profile?.name ?? ''}, it's medicine time`.replace(/^, /, ''), attrs: { id: 'alarm-title' } }),
     el('p', { className: 'muted', text: formatTime(doses[0].time) }),
     el('ul', { className: 'alarm__meds' }, doses.map((d) => el('li', {}, [
-      pillIcon(d.med),
+      medMedia(d.med, 'med-media--lg'),
       el('div', {}, [
         el('strong', { text: [d.med.name, d.med.dosage].filter(Boolean).join(' ') }),
         el('div', { className: 'muted', text: `${doseLabel(d.med)} · ${MEAL_LABEL[d.med.meal] ?? ''}` }),
+        d.med.kept_at && el('div', { className: 'tile__place' }, [icon('pin'), d.med.kept_at]),
       ]),
     ]))),
     takeAll,
@@ -160,6 +162,11 @@ export async function enableNotifications() {
   if (!('Notification' in window)) return 'unsupported';
   unlockAudio();
   return Notification.requestPermission();
+}
+
+/** True once the browser allows the alarm to make sound (after a tap). */
+export function isAudioReady() {
+  return Boolean(audioCtx && audioCtx.state === 'running');
 }
 
 /** Play a test alarm sound (from a click, which also unlocks audio). */

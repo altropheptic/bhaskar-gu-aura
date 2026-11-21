@@ -14,8 +14,10 @@ import { supabase, ensureAnonymousSession } from './supabaseClient.js';
 
 const LOCAL_KEY = 'dawai-dost-local-v1';
 
-const PROFILE_COLS = ['name', 'age', 'language', 'blood_group', 'allergies', 'conditions', 'emergency_name', 'emergency_phone'];
-const MEDICINE_COLS = ['profile_id', 'name', 'generic_name', 'dosage', 'form', 'color', 'shape', 'meal', 'times', 'days', 'dose_qty', 'stock', 'refill_at', 'start_date', 'end_date', 'active', 'notes'];
+const PROFILE_COLS = ['name', 'age', 'language', 'blood_group', 'allergies', 'conditions', 'emergency_name', 'emergency_phone',
+  'wake_time', 'breakfast_time', 'lunch_time', 'dinner_time', 'bed_time'];
+const MEDICINE_COLS = ['profile_id', 'name', 'generic_name', 'dosage', 'form', 'color', 'shape', 'meal', 'times', 'slots', 'days', 'dose_qty',
+  'stock', 'refill_at', 'start_date', 'end_date', 'active', 'notes', 'kept_at', 'doctor', 'photo'];
 
 /** Thrown when a scheduled dose has already been logged (the double-dose guard). */
 export class DuplicateDoseError extends Error {
@@ -27,16 +29,33 @@ function pick(obj, cols) {
   return Object.fromEntries(cols.filter((c) => obj[c] !== undefined).map((c) => [c, obj[c]]));
 }
 
-/** Normalise a medicine row (Postgres returns "08:00:00" for time and strings for some numerics). */
+/**
+ * Normalise a medicine row (Postgres returns "08:00:00" for time and strings for
+ * some numerics). Times and their routine slots are parallel arrays, so they are
+ * sorted together.
+ */
 function normMedicine(m) {
+  const times = (m.times ?? []).map((t) => String(t).slice(0, 5));
+  const slots = Array.isArray(m.slots) && m.slots.length === times.length ? m.slots : null;
+  const order = times.map((t, i) => i).sort((a, b) => times[a].localeCompare(times[b]));
   return {
     ...m,
-    times: (m.times ?? []).map((t) => String(t).slice(0, 5)).sort(),
+    times: order.map((i) => times[i]),
+    slots: slots ? order.map((i) => slots[i]) : null,
     days: (m.days ?? []).map(Number),
     dose_qty: Number(m.dose_qty),
     stock: m.stock === null || m.stock === undefined ? null : Number(m.stock),
     refill_at: Number(m.refill_at ?? 5),
   };
+}
+
+/** Routine times come back as "08:30:00" from Postgres; keep "HH:MM". */
+function normProfile(p) {
+  const out = { ...p };
+  for (const k of ['wake_time', 'breakfast_time', 'lunch_time', 'dinner_time', 'bed_time']) {
+    if (out[k]) out[k] = String(out[k]).slice(0, 5);
+  }
+  return out;
 }
 
 /* ------------------------------------------------------------------ */
@@ -66,7 +85,7 @@ class MemoryBackend {
     try { localStorage.setItem(this.persistKey, JSON.stringify(this.data)); } catch { /* storage full/blocked */ }
   }
 
-  async listProfiles() { return [...this.data.profiles]; }
+  async listProfiles() { return this.data.profiles.map(normProfile); }
 
   async saveProfile(p) {
     const clean = pick(p, PROFILE_COLS);
@@ -161,7 +180,7 @@ class CloudBackend {
   async listProfiles() {
     const { data, error } = await supabase.from('profiles').select('*').order('created_at');
     CloudBackend.check(error);
-    return data;
+    return data.map(normProfile);
   }
 
   async saveProfile(p) {

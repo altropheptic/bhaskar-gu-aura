@@ -7,6 +7,7 @@
  */
 import { store, DuplicateDoseError } from './store.js';
 import { indexLogs, addDays, startOfDay } from './schedule.js';
+import { routineOf, retime } from './routine.js';
 
 const PROFILE_KEY = 'dawai-dost-profile';
 
@@ -60,12 +61,24 @@ export async function selectProfile(id) {
   await loadProfileData();
 }
 
-/** Create or update a person. Selects a newly created one. */
+/**
+ * Create or update a person. Selects a newly created one. If their daily routine
+ * changed, every dose anchored to it ("after breakfast") is re-timed to match.
+ * @returns {Promise<any>} the saved profile (with `retimed` = number of medicines moved)
+ */
 export async function saveProfile(profile) {
   const saved = await store.saveProfile(profile);
   if (!profile.id) state.profileId = saved.id;
+  let retimed = 0;
+  if (profile.id) {
+    const routine = routineOf({ ...saved, ...profile });
+    for (const med of await store.listMedicines(profile.id)) {
+      const next = retime(med, routine);
+      if (next) { await store.saveMedicine({ id: med.id, ...next }); retimed += 1; }
+    }
+  }
   await loadAll();
-  return saved;
+  return { ...saved, retimed };
 }
 
 export async function deleteProfile(id) {

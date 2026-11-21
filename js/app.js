@@ -151,6 +151,7 @@ $('#demo-btn').addEventListener('click', () => startDemo().catch((e) => showBann
 $('#start-btn').addEventListener('click', startOwnList);
 $('#settings-btn').addEventListener('click', openSettings);
 $('#add-med-btn').addEventListener('click', () => openMedicineDialog());
+$('#fab-add').addEventListener('click', () => openMedicineDialog());
 $('#demo-chip').addEventListener('click', () => exitDemo().catch((e) => showBanner('error', e.message)));
 document.querySelectorAll('.nav__item').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
 $('#profile-select').addEventListener('change', (e) => {

@@ -6,6 +6,7 @@
  */
 import { el, openDialog, setLoading, toast } from './ui.js';
 import { saveProfile, deleteProfile, state } from './state.js';
+import { SLOTS, SLOT_LABEL, ROUTINE_FIELDS, DEFAULT_ROUTINE, routineOf } from './routine.js';
 
 const BLOOD = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -19,6 +20,7 @@ function validate(p) {
   if ((p.allergies ?? '').length > 200 || (p.conditions ?? '').length > 200) errors.push('Allergies and conditions must be under 200 letters.');
   if ((p.emergency_name ?? '').length > 40) errors.push('Contact name is too long.');
   if (p.emergency_phone && !/^[0-9+ -]{0,20}$/.test(p.emergency_phone)) errors.push('Phone can only contain digits, spaces, + and -.');
+  if (Object.values(ROUTINE_FIELDS).some((k) => !/^([01]\d|2[0-3]):[0-5]\d$/.test(p[k] ?? ''))) errors.push('Fill in every routine time.');
   return errors;
 }
 
@@ -28,7 +30,8 @@ function validate(p) {
  */
 export function openProfileDialog(existing, { onSaved } = {}) {
   const dialog = /** @type {HTMLDialogElement} */ (document.getElementById('profile-dialog'));
-  const p = existing ?? { name: '', age: null, language: 'en', blood_group: '', allergies: '', conditions: '', emergency_name: '', emergency_phone: '' };
+  const p = existing ?? { name: '', age: null, language: 'en', blood_group: '', allergies: '', conditions: '', emergency_name: '', emergency_phone: '', ...DEFAULT_ROUTINE };
+  const routine = routineOf(p);
   const body = openDialog(dialog, existing ? `Edit ${existing.name}` : 'Add a person', 'profile-title');
 
   const input = (name, label, attrs = {}, hint) => {
@@ -53,6 +56,14 @@ export function openProfileDialog(existing, { onSaved } = {}) {
           el('option', { text: 'हिन्दी (Hindi)', attrs: { value: 'hi', selected: p.language === 'hi' } }),
         ]),
       ]),
+    ]),
+    el('fieldset', {}, [
+      el('legend', { text: 'Daily routine' }),
+      el('p', { className: 'field__hint', text: 'Doses follow these times, e.g. "after breakfast".' }),
+      el('div', { className: 'routine-grid' }, SLOTS.map((s) => el('div', { className: 'field' }, [
+        el('label', { text: SLOT_LABEL[s], attrs: { for: `pf-${s}` } }),
+        el('input', { attrs: { id: `pf-${s}`, name: ROUTINE_FIELDS[s], type: 'time', value: routine[ROUTINE_FIELDS[s]], required: true } }),
+      ]))),
     ]),
     el('details', { attrs: { open: Boolean(existing) } }, [
       el('summary', { text: 'Emergency details (optional)' }),
@@ -99,6 +110,7 @@ export function openProfileDialog(existing, { onSaved } = {}) {
       conditions: String(fd.get('conditions') ?? '').trim(),
       emergency_name: String(fd.get('emergency_name') ?? '').trim(),
       emergency_phone: String(fd.get('emergency_phone') ?? '').trim(),
+      ...Object.fromEntries(Object.values(ROUTINE_FIELDS).map((k) => [k, String(fd.get(k) ?? '')])),
     };
     const errors = validate(profile);
     if (errors.length) {
@@ -109,6 +121,7 @@ export function openProfileDialog(existing, { onSaved } = {}) {
     try {
       const saved = await saveProfile(profile);
       dialog.close();
+      if (saved.retimed) toast(`Routine saved · ${saved.retimed} medicine${saved.retimed === 1 ? '' : 's'} re-timed`);
       onSaved?.(saved);
     } catch (err) {
       errorBox.replaceChildren(el('div', { className: 'banner banner--error' }, [el('p', { text: err.message })]));

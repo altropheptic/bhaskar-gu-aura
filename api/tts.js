@@ -27,7 +27,9 @@ function validate(body) {
     const name = typeof m?.name === 'string' ? m.name.trim() : '';
     const qty = Number(m?.qty);
     if (!SAFE_NAME.test(name) || !(qty >= 0.5 && qty <= 20) || !VOICE_FORMS.includes(m.form) || !VOICE_MEALS.includes(m.meal)) return null;
-    medicines.push({ name, qty, form: m.form, meal: m.meal });
+    const place = typeof m.place === 'string' ? m.place.trim() : '';
+    if (place && !SAFE_NAME.test(place)) return null;
+    medicines.push({ name, qty, form: m.form, meal: m.meal, ...(place ? { place } : {}) });
   }
   return { lang: body.lang, person, medicines };
 }

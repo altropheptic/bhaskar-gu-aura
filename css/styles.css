@@ -37,7 +37,7 @@
 
   /* 8px spacing scale */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
-  --radius-sm: 8px; --radius: 12px; --radius-lg: 16px;
+  --radius-sm: 8px; --radius: 12px; --radius-lg: 20px;
   --tap: 48px;
   --topbar: 64px;
   --sidebar: 248px;
@@ -252,7 +252,7 @@ body.in-app { overflow-x: hidden; }
 
 @media (min-width: 960px) {
   .shell { grid-template-columns: var(--sidebar) minmax(0, 1fr); }
-  .sidebar { position: sticky; top: 0; inset: auto; grid-row: 1 / -1; height: 100dvh; padding: var(--s5) var(--s4); border-top: 0; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: var(--s6); }
+  .sidebar { position: sticky; inset: 0 auto auto auto; top: 0; grid-row: 1 / -1; align-self: start; height: 100dvh; padding: var(--s5) var(--s4); border-top: 0; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: var(--s6); }
   .sidebar__brand { display: flex; padding-inline: var(--s3); min-height: 40px; }
   .nav { display: flex; flex-direction: column; gap: var(--s1); height: auto; }
   .nav__item { flex-direction: row; justify-content: flex-start; gap: var(--s3); min-height: var(--tap); padding: 0 var(--s3); border-radius: var(--radius); font-size: 1rem; color: var(--ink); }
@@ -329,7 +329,8 @@ body.in-app { overflow-x: hidden; }
 /* ---------- Medicines ---------- */
 .med-list { display: grid; gap: var(--s4); grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 720px) { .med-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.med { display: grid; align-content: start; grid-template-columns: 40px minmax(0, 1fr); column-gap: var(--s4); }
+.med { display: grid; align-content: start; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--s4); align-items: center; }
+.med__facts { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); }
 .med > :nth-child(n+3) { grid-column: 1 / -1; }
 .med__title { font-weight: 700; font-size: 1.05rem; line-height: 1.3; }
 .med__sub { color: var(--muted); font-size: 0.9rem; margin-top: 2px; }
@@ -431,6 +432,147 @@ body.in-app { overflow-x: hidden; }
   .print-area table { width: 100%; border-collapse: collapse; margin: 6pt 0 12pt; }
   .print-area th, .print-area td { border: 1px solid #999; padding: 4pt 6pt; text-align: left; }
   .print-card { border: 2px solid #000; border-radius: 10pt; padding: 12pt; max-width: 15cm; }
+}
+
+
+/* =====================================================================
+   ROUND 3: patterns from top medication-app designs (greeting, week strip,
+   "Next up" hero, time-rail timeline, floating add button)
+   ===================================================================== */
+
+/* Medicine face: photo or drawn pill in a tinted rounded square */
+.med-media { width: 48px; height: 48px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; flex: none; overflow: hidden; }
+.med-media .pill { width: 32px; height: 32px; }
+.med-media--lg { width: 56px; height: 56px; border-radius: 16px; }
+.med-media--lg .pill { width: 38px; height: 38px; }
+.med-media--xl { width: 80px; height: 80px; border-radius: 20px; background: rgb(255 255 255 / 0.22); }
+.med-media--xl .pill { width: 54px; height: 54px; }
+.med-media img, .med-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Week strip */
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s2); }
+.week__day { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 72px; padding: var(--s2) 0; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font: inherit; }
+.week__day:hover { border-color: var(--primary); }
+.week__name { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.week__num { font-family: var(--font-head); font-size: 1.15rem; font-weight: 650; }
+.week__dot { width: 6px; height: 6px; border-radius: 50%; }
+.week__dot--ok { background: var(--ok); }
+.week__dot--part { background: var(--accent); }
+.week__dot--none { background: var(--danger); }
+.week__day.is-today:not(.is-selected) { border-color: var(--primary); }
+.week__day.is-selected { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.week__day.is-selected .week__name { color: inherit; opacity: 0.85; }
+
+/* "Next up" hero */
+.hero { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s4); align-items: center; padding: var(--s5); border-radius: 24px; background: var(--primary); color: var(--on-primary); }
+.hero--due { background: var(--accent); color: var(--on-accent); }
+.hero--missed { background: var(--danger-soft); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--danger); }
+.hero--missed .med-media--xl { background: var(--surface); }
+.hero--done { background: var(--ok-soft); color: var(--ink); }
+.hero__eyebrow { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+.hero__title { font-size: 1.5rem; margin-top: 2px; }
+.hero__how { margin-top: var(--s1); opacity: 0.9; }
+.hero__place { display: flex; align-items: center; gap: var(--s1); margin-top: var(--s2); font-weight: 600; }
+.hero__place svg { width: 18px; height: 18px; }
+.hero__time { grid-column: 1 / -1; display: flex; align-items: baseline; gap: var(--s3); }
+.hero__clock { font-family: var(--font-head); font-size: 2rem; font-weight: 650; line-height: 1; }
+.hero__count { font-weight: 600; opacity: 0.9; }
+.hero__actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--s2); }
+.hero__primary { background: var(--surface); color: var(--ink); flex: 1 1 12rem; }
+.hero__primary:hover { background: var(--bg); }
+.hero__ghost { background: transparent; color: inherit; border: 2px solid currentColor; padding-inline: var(--s4); }
+.hero__ghost:hover { background: rgb(255 255 255 / 0.12); }
+.hero__badge { width: 56px; height: 56px; border-radius: 50%; background: var(--ok); color: var(--on-primary); display: grid; place-items: center; }
+.hero__badge svg { width: 28px; height: 28px; }
+@media (min-width: 720px) {
+  .hero { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .hero__time { grid-column: auto; flex-direction: column; align-items: flex-end; gap: var(--s1); }
+}
+
+/* Phones: keep the "Next up" card compact (it was ~2x taller than needed) */
+@media (max-width: 719px) {
+  .hero { padding: var(--s4); gap: var(--s3); border-radius: 20px; }
+  .hero .med-media--xl { width: 56px; height: 56px; border-radius: 16px; }
+  .hero .med-media--xl .pill { width: 36px; height: 36px; }
+  .hero__title { font-size: 1.15rem; }
+  .hero__how, .hero__place { font-size: 0.9rem; }
+  .hero__place { margin-top: var(--s1); }
+  .hero__clock { font-size: 1.35rem; }
+  .hero__actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .hero__primary { grid-column: 1 / -1; min-height: 52px; }
+  .hero__ghost { min-height: 44px; font-size: 0.88rem; padding-inline: var(--s2); }
+}
+.ring--sm { width: 56px; height: 56px; }
+.ring--sm span { width: 44px; height: 44px; font-size: 0.8rem; }
+.health-chip { cursor: pointer; min-height: 36px; padding-inline: var(--s3); }
+
+/* Time-rail timeline */
+.rail { display: grid; gap: var(--s4); }
+.rail__row { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: var(--s3); }
+.rail__time { display: flex; flex-direction: column; padding-top: var(--s3); }
+.rail__clock { font-family: var(--font-head); font-weight: 650; font-size: 1.05rem; }
+.rail__label { color: var(--muted); font-size: 0.8rem; font-weight: 600; }
+.rail__tiles { display: grid; gap: var(--s2); }
+.tile { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s3); align-items: center; padding: var(--s3); border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }
+.tile--due { background: var(--accent-soft); border-color: var(--accent); }
+.tile--missed { border-color: var(--danger); }
+.tile--skipped { opacity: 0.7; }
+.tile__main { display: grid; gap: 2px; }
+.tile__name { font-weight: 700; line-height: 1.3; }
+.tile__meta { color: var(--muted); font-size: 0.88rem; }
+.tile__place { display: inline-flex; align-items: center; gap: var(--s1); color: var(--muted); font-size: 0.85rem; font-weight: 600; }
+.tile__place svg { width: 16px; height: 16px; flex: none; }
+.tile__side { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+@media (min-width: 720px) {
+  .tile { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .tile__side { grid-column: auto; justify-content: flex-end; }
+}
+@media (max-width: 479px) {
+  .rail__row { grid-template-columns: minmax(0, 1fr); gap: var(--s2); }
+  .rail__time { flex-direction: row; align-items: baseline; gap: var(--s2); padding-top: 0; }
+}
+
+/* Routine chips in the medicine form */
+.slot-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: var(--s2); }
+.slot-chip { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0; padding: var(--s3) var(--s2); border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--surface); text-align: center; cursor: pointer; }
+.slot-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.slot-chip:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+.slot-chip:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+.slot-chip__name { font-weight: 700; }
+.slot-chip__time { color: var(--muted); font-size: 0.85rem; font-weight: 500; }
+.times-list { margin-bottom: var(--s4); }
+.routine-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0 var(--s3); }
+.med-form .section-title { margin: var(--s5) 0 var(--s3); }
+.med-form .section-title:first-child { margin-top: 0; }
+
+/* Medicine photo field */
+.photo-field { display: flex; align-items: center; gap: var(--s4); margin-bottom: var(--s4); }
+.photo-field__empty { width: 72px; height: 72px; border-radius: 16px; border: 1.5px dashed var(--line); display: grid; place-items: center; color: var(--muted); flex: none; }
+.photo-field__empty svg { width: 28px; height: 28px; }
+.med-photo--lg { width: 96px; height: 96px; border-radius: 16px; flex: none; }
+.onetap__photo { width: 160px; height: 160px; border-radius: 28px; object-fit: cover; }
+.onetap__place { display: flex; align-items: center; gap: var(--s2); font-weight: 600; font-size: 1.1rem; }
+.onetap__place svg { width: 22px; height: 22px; }
+
+/* Reminder health check */
+.card__head .chip { margin-left: auto; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; }
+.check { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: var(--s3); align-items: center; padding: var(--s2) 0; border-bottom: 1px solid var(--line); }
+.check:last-child { border-bottom: 0; }
+.check__dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; }
+.check__dot svg { width: 18px; height: 18px; }
+.check--ok .check__dot { background: var(--ok-soft); color: var(--ok); }
+.check--bad .check__dot { background: var(--accent-soft); color: var(--ink); }
+.check--opt .check__dot { background: var(--surface-2); color: var(--muted); }
+.check__text { display: flex; flex-direction: column; line-height: 1.3; }
+.check__text span { color: var(--muted); font-size: 0.85rem; }
+
+/* Floating add button in the phone tab bar */
+.nav__fab { display: none; }
+@media (max-width: 959px) {
+  .nav { grid-template-columns: repeat(5, 1fr); }
+  .nav__fab { display: grid; place-items: center; justify-self: center; align-self: center; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--primary); color: var(--on-primary); transform: translateY(-14px); box-shadow: 0 6px 16px rgb(0 0 0 / 0.22); cursor: pointer; }
+  .nav__fab svg { width: 28px; height: 28px; }
 }
 
 /* ---------- Motion preferences ---------- */

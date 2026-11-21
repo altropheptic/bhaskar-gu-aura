@@ -9,6 +9,8 @@ import { state, currentProfile, saveMedicine, deleteMedicine } from './state.js'
 import { daysOfSupply, duplicateGenerics } from './schedule.js';
 import { openMedicineDialog } from './medForm.js';
 import { explainWithAi } from './ai.js';
+import { medMedia } from './photo.js';
+import { doseSlotLabel } from './routine.js';
 
 const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -52,15 +54,19 @@ function medCard(med) {
 
   const showGeneric = med.generic_name && med.generic_name.toLowerCase() !== med.name.toLowerCase();
   return el('article', { className: `card med${med.active ? '' : ' med--paused'}` }, [
-    pillIcon(med),
+    medMedia(med, 'med-media--lg'),
     el('div', {}, [
       el('h3', { className: 'med__title', text: [med.name, med.dosage].filter(Boolean).join(' ') }),
       el('p', { className: 'med__sub', text: [showGeneric && med.generic_name, doseLabel(med), MEAL_LABEL[med.meal], daysText(med.days)].filter(Boolean).join(' · ') }),
     ]),
     el('div', { className: 'med__row' }, [
-      ...med.times.map((t) => el('span', { className: 'chip' }, [icon('clock'), formatTime(t)])),
+      ...med.times.map((t, i) => el('span', { className: 'chip' }, [icon('clock'), med.slots?.[i] && med.slots[i] !== 'custom' ? `${doseSlotLabel(med.slots[i], t)} · ${formatTime(t)}` : formatTime(t)])),
       !med.active && el('span', { className: 'chip chip--skipped', text: 'Paused' }),
       med.end_date && el('span', { className: 'chip chip--meal', text: `Until ${new Date(`${med.end_date}T00:00`).toLocaleDateString([], { day: 'numeric', month: 'short' })}` }),
+    ]),
+    (med.kept_at || med.doctor) && el('div', { className: 'med__facts' }, [
+      med.kept_at && el('span', { className: 'tile__place' }, [icon('pin'), med.kept_at]),
+      med.doctor && el('span', { className: 'tile__place' }, [icon('rx'), med.doctor]),
     ]),
     left !== null && el('p', { className: `supply${low ? ' supply--low' : ''}`, text: `${med.stock} left · ${left} day${left === 1 ? '' : 's'}` }),
     el('div', { className: 'med__actions' }, [

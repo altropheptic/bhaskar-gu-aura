@@ -38,7 +38,11 @@ The whole build was pair-programmed with **Claude Code** inside the hackathon's 
 6. **Design iteration.** After the first build, the owner asked for an app feel instead of a website, with less text.
    - Claude Code researched app-shell navigation (sidebar on desktop, bottom tab bar on mobile), 8pt spacing and card-consistency guidance.
    - It rebuilt the layout and measured horizontal overflow at 390px in the browser until every screen fitted.
-7. **Human in the loop.** The owner made every product decision (name, palette, fonts, features, no deploy without approval). Claude Code proposed, implemented and verified.
+7. **Competitor and design research.**
+   - Claude Code analysed recent app-store complaints (reminders silently failing, paywalls), Android Doze limits, CHI/Digital Health studies on routine-based remembering, and NN/g guidance for older adults.
+   - It also looked at top Dribbble medication-app shots: greeting, week strip, "Next up" hero, time rail.
+   - This produced the routine-based reminders, place cue and reminder health check, and the redesigned Today screen.
+8. **Human in the loop.** The owner made every product decision (name, palette, fonts, features, no deploy without approval). Claude Code proposed, implemented and verified.
 
 ## Repo conventions that help AI agents
 

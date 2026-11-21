@@ -23,6 +23,7 @@ Each risk has at least two independent defences.
 - **The `anon` role has no table privileges** (`revoke all … from anon`).
 - **CHECK constraints** on every field: lengths, allow-lists (form, colour, shape, meal, blood group), ranges (dose 0.5–20, stock 0–10,000), time arrays of 1–6 entries, and days within 0–6.
 - **Double-dose guard:** `UNIQUE (medicine_id, scheduled_for)`.
+- **Medicine photos** are stored as small data URLs. Postgres enforces the format (`^data:image/(jpeg|png|webp);base64,…$`) and a 90 KB cap. The browser re-checks the format before rendering into an `<img>`; it is never rendered as HTML.
 - The schema lives in [`supabase/schema.sql`](../supabase/schema.sql). After the migration, the Supabase **security advisor reported zero issues**.
 
 ## Secrets

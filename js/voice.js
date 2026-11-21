@@ -60,7 +60,10 @@ export async function speakReminder(profile, meds, button, { force = false } = {
   const payload = {
     lang,
     person: (profile?.name ?? '').slice(0, 40),
-    medicines: meds.slice(0, 3).map((m) => ({ name: m.name.slice(0, 60), qty: Number(m.dose_qty) || 1, form: m.form, meal: m.meal })),
+    medicines: meds.slice(0, 3).map((m) => ({
+      name: m.name.slice(0, 60), qty: Number(m.dose_qty) || 1, form: m.form, meal: m.meal,
+      ...(m.kept_at ? { place: m.kept_at.slice(0, 60) } : {}),
+    })),
   };
   const text = reminderText(payload);
   if (button) setLoading(button, true, 'Speaking…');

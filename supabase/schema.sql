@@ -171,3 +171,35 @@ create policy "caregiver_links: update own" on public.caregiver_links for update
   );
 create policy "caregiver_links: delete own" on public.caregiver_links for delete to authenticated
   using (user_id = (select auth.uid()));
+
+-- ---------------------------------------------------------------------------
+-- Migration: routine_slots_and_place_cue
+-- Routine-based reminders (research: people remember medicines through daily
+-- routines and place cues, and two cues beat one; Stawarz et al. 2014/2016).
+-- Each person has routine times; a medicine dose can be anchored to a routine
+-- slot ("after breakfast") and moves when the routine changes. `times` stays
+-- the materialised clock time so schedules, alarms and calendar export are simple.
+-- ---------------------------------------------------------------------------
+alter table public.profiles
+  add column wake_time      time not null default '07:00',
+  add column breakfast_time time not null default '08:30',
+  add column lunch_time     time not null default '13:30',
+  add column dinner_time    time not null default '20:30',
+  add column bed_time       time not null default '22:00';
+
+alter table public.medicines
+  add column slots   text[] check (slots is null or (cardinality(slots) between 1 and 6 and slots <@ '{wake,breakfast,lunch,dinner,bed,custom}'::text[])),
+  add column kept_at text check (char_length(kept_at) <= 60);   -- place cue, e.g. "blue box, dining table"
+
+alter table public.medicines
+  add constraint medicines_slots_match_times check (slots is null or cardinality(slots) = cardinality(times));
+
+-- ---------------------------------------------------------------------------
+-- Migration: medicine_doctor_and_photo
+-- Prescribing doctor, and a small compressed photo of the medicine/strip
+-- (data URL, ~25 KB) so elders can recognise it. Format and size are enforced
+-- here as well as in the browser.
+-- ---------------------------------------------------------------------------
+alter table public.medicines
+  add column doctor text check (char_length(doctor) <= 60),
+  add column photo  text check (photo is null or (char_length(photo) <= 90000 and photo ~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'));

@@ -7,6 +7,7 @@
  * the demo starts. Everything is deterministic (seeded) so it looks the same each time.
  */
 import { isoDate, addDays, startOfDay, dosesForDay } from './schedule.js';
+import { buildSchedule, routineOf } from './routine.js';
 
 /** Small deterministic pseudo-random generator (mulberry32). */
 function seeded(seed) {
@@ -33,27 +34,34 @@ export function buildDemoData(now = new Date()) {
     id: crypto.randomUUID(), name: 'Dadi', age: 74, language: 'hi', blood_group: 'B+',
     allergies: 'Penicillin', conditions: 'Type 2 diabetes, high blood pressure',
     emergency_name: 'Rohan (grandson)', emergency_phone: '+91 98640 12345',
+    wake_time: '06:00', breakfast_time: '08:00', lunch_time: '13:00', dinner_time: '20:30', bed_time: '22:00',
   };
   const nanaji = {
     id: crypto.randomUUID(), name: 'Nanaji', age: 79, language: 'en', blood_group: 'O+',
     allergies: 'None known', conditions: 'Hypertension, knee pain',
     emergency_name: 'Priya (daughter)', emergency_phone: '+91 94350 67890',
+    wake_time: '06:30', breakfast_time: '08:30', lunch_time: '14:00', dinner_time: '21:00', bed_time: '22:30',
   };
 
-  const med = (profile, m) => ({
-    id: crypto.randomUUID(), profile_id: profile.id, days: EVERY_DAY, dose_qty: 1, refill_at: 5,
-    start_date: twoWeeksAgo, end_date: null, active: true, notes: '', generic_name: '', ...m,
-  });
+  /** Medicine with times derived from the person's routine slots (plus any custom times). */
+  const med = (profile, { slots = [], custom = [], ...m }) => {
+    const schedule = buildSchedule(slots, custom, m.meal, routineOf(profile));
+    return {
+      id: crypto.randomUUID(), profile_id: profile.id, days: EVERY_DAY, dose_qty: 1, refill_at: 5,
+      start_date: twoWeeksAgo, end_date: null, active: true, notes: '', generic_name: '', kept_at: '', doctor: '', photo: null,
+      ...m, times: schedule.times, slots: schedule.slots,
+    };
+  };
 
   const medicines = [
-    med(dadi, { name: 'Metformin', generic_name: 'Metformin', dosage: '500 mg', form: 'tablet', color: 'white', shape: 'round', meal: 'after', times: ['08:00', '21:00'], stock: 38 }),
-    med(dadi, { name: 'Amlodipine', generic_name: 'Amlodipine', dosage: '5 mg', form: 'tablet', color: 'pink', shape: 'oval', meal: 'any', times: ['08:00'], stock: 3, notes: 'For blood pressure' }),
-    med(dadi, { name: 'Atorvastatin', generic_name: 'Atorvastatin', dosage: '10 mg', form: 'tablet', color: 'white', shape: 'oval', meal: 'after', times: ['21:00'], stock: 24 }),
-    med(dadi, { name: 'Calcium + Vitamin D3', generic_name: 'Calcium carbonate', dosage: '500 mg', form: 'tablet', color: 'yellow', shape: 'capsule', meal: 'after', times: [soonTime], stock: 50, start_date: isoDate(today), notes: 'Added today to show the alarm' }),
-    med(nanaji, { name: 'Telmisartan', generic_name: 'Telmisartan', dosage: '40 mg', form: 'tablet', color: 'white', shape: 'round', meal: 'before', times: ['07:30'], stock: 20 }),
-    med(nanaji, { name: 'Ecosprin', generic_name: 'Aspirin', dosage: '75 mg', form: 'tablet', color: 'orange', shape: 'round', meal: 'after', times: ['14:00'], stock: 28 }),
-    med(nanaji, { name: 'Dolo 650', generic_name: 'Paracetamol', dosage: '650 mg', form: 'tablet', color: 'white', shape: 'oval', meal: 'after', times: ['09:00', '21:00'], stock: 10, end_date: isoDate(addDays(today, 3)), notes: 'For knee pain, 5 days' }),
-    med(nanaji, { name: 'Crocin Advance', generic_name: 'Paracetamol', dosage: '500 mg', form: 'tablet', color: 'blue', shape: 'oval', meal: 'any', times: ['15:00'], stock: 15, notes: 'Same medicine as Dolo: shows the duplicate warning' }),
+    med(dadi, { name: 'Metformin', generic_name: 'Metformin', dosage: '500 mg', form: 'tablet', color: 'white', shape: 'round', meal: 'after', slots: ['breakfast', 'dinner'], stock: 38, kept_at: 'Steel dabba, dining table', doctor: 'Dr. Meera Baruah' }),
+    med(dadi, { name: 'Amlodipine', generic_name: 'Amlodipine', dosage: '5 mg', form: 'tablet', color: 'pink', shape: 'oval', meal: 'any', slots: ['breakfast'], stock: 3, notes: 'For blood pressure', kept_at: 'Steel dabba, dining table', doctor: 'Dr. Meera Baruah' }),
+    med(dadi, { name: 'Atorvastatin', generic_name: 'Atorvastatin', dosage: '10 mg', form: 'tablet', color: 'white', shape: 'oval', meal: 'after', slots: ['dinner'], stock: 24, kept_at: 'Bedside drawer', doctor: 'Dr. Meera Baruah' }),
+    med(dadi, { name: 'Calcium + Vitamin D3', generic_name: 'Calcium carbonate', dosage: '500 mg', form: 'tablet', color: 'yellow', shape: 'capsule', meal: 'after', custom: [soonTime], stock: 50, start_date: isoDate(today), notes: 'Added today to show the alarm', kept_at: 'Kitchen shelf, blue box' }),
+    med(nanaji, { name: 'Telmisartan', generic_name: 'Telmisartan', dosage: '40 mg', form: 'tablet', color: 'white', shape: 'round', meal: 'before', slots: ['breakfast'], stock: 20, kept_at: 'Pill organiser, study table', doctor: 'Dr. R. K. Das' }),
+    med(nanaji, { name: 'Ecosprin', generic_name: 'Aspirin', dosage: '75 mg', form: 'tablet', color: 'orange', shape: 'round', meal: 'after', slots: ['lunch'], stock: 28, kept_at: 'Pill organiser, study table', doctor: 'Dr. R. K. Das' }),
+    med(nanaji, { name: 'Dolo 650', generic_name: 'Paracetamol', dosage: '650 mg', form: 'tablet', color: 'white', shape: 'oval', meal: 'after', slots: ['breakfast', 'dinner'], stock: 10, end_date: isoDate(addDays(today, 3)), notes: 'For knee pain, 5 days', doctor: 'Dr. Anil Kalita (ortho)' }),
+    med(nanaji, { name: 'Crocin Advance', generic_name: 'Paracetamol', dosage: '500 mg', form: 'tablet', color: 'blue', shape: 'oval', meal: 'any', custom: ['15:00'], stock: 15, notes: 'Same medicine as Dolo: shows the duplicate warning' }),
   ];
 
   // History: ~90% taken, a few skipped or simply missed (no log).

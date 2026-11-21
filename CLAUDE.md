@@ -31,12 +31,19 @@ When planning or reviewing work, say which criteria it serves; the README gets o
   - Commits `a865530` (build) and `46cdd4e` (docs).
   - Verified in Chrome: demo, alarm, take/undo, quick fill, all tabs, one-tap mode, themes.
   - API checks: 401 / 400 / 404 responses as designed.
+- Round 3 (USPs from competitor research + Dribbble patterns), committed locally:
+  - Routine-based reminders (`js/routine.js`, profile routine columns, medicine `slots`; doses re-time when the routine changes).
+  - "Kept at" place cue, doctor name, medicine photo (data-URL thumbnail).
+  - Reminder health check (`js/reminderHealth.js`).
+  - Today redesign: greeting, week strip, "Next up" hero, time rail; floating + on phones.
+  - Fixes: tolerant log matching after re-timing (`findLog`), sticky sidebar.
+  - Migrations: `routine_slots_and_place_cue`, `medicine_doctor_and_photo`.
+- Gemini/ElevenLabs keys are set in Vercel **Production only**, so AI and voice can only be tested on the live site after the owner approves a deploy.
 - Round-2 UI rework committed locally (see `git log`).
   - App shell, terse copy, symmetric grids.
   - Verified in Chrome on desktop and at 390px width (no horizontal overflow on any tab).
 - Waiting on owner:
-  - Enable Supabase anonymous sign-ins (until then the app runs in on-device "offline mode").
-  - Add `GEMINI_API_KEY` and `ELEVENLABS_API_KEY` in Vercel, then `npx vercel env pull .env.local`.
+  - Enable Supabase anonymous sign-ins (still off as of round 3; until then the app runs in on-device "offline mode").
   - After that: test AI, voice, cloud saving and caregiver links end-to-end.
 - Not yet: push/deploy (owner must approve), PWA offline test, print preview.
 

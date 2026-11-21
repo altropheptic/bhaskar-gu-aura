@@ -8,15 +8,19 @@
  */
 import { isoDate, addDays } from './schedule.js';
 
-/** Default clock times for each slot of the "1-0-1" notation. */
-const SLOT_TIMES_3 = ['08:00', '14:00', '21:00'];
-const SLOT_TIMES_4 = ['08:00', '13:00', '18:00', '22:00'];
+/**
+ * Routine slots for each position of the "1-0-1" notation. Doses are anchored to
+ * the person's own meals, not to fixed clock times (see routine.js).
+ */
+const SLOTS_3 = ['breakfast', 'lunch', 'dinner'];
+const SLOTS_4 = ['breakfast', 'lunch', 'dinner', 'bed'];
 
 const FREQ_WORDS = [
   { re: /\b(qid|four times)\b/i, pattern: [1, 1, 1, 1] },
   { re: /\b(tds|tid|thrice|three times)\b/i, pattern: [1, 1, 1] },
   { re: /\b(bd|bid|twice|two times)\b/i, pattern: [1, 0, 1] },
-  { re: /\b(hs|at bed ?time|bedtime|at night)\b/i, pattern: [0, 0, 1] },
+  { re: /\b(hs|at bed ?time|bedtime)\b/i, pattern: [0, 0, 0, 1] },
+  { re: /\bat night\b/i, pattern: [0, 0, 1] },
   { re: /\b(od|once( a day| daily)?|daily)\b/i, pattern: [1, 0, 0] },
 ];
 
@@ -51,10 +55,10 @@ export function parsePrescription(text, today = new Date()) {
     }
   }
   if (pattern && pattern.some((n) => n > 0)) {
-    const times = pattern.length === 4 ? SLOT_TIMES_4 : SLOT_TIMES_3;
-    fields.times = pattern.map((n, i) => (n > 0 ? times[i] : null)).filter(Boolean);
+    const slots = pattern.length === 4 ? SLOTS_4 : SLOTS_3;
+    fields.slots = pattern.map((n, i) => (n > 0 ? slots[i] : null)).filter(Boolean);
     fields.dose_qty = pattern.find((n) => n > 0);
-    understood.push(`${fields.times.length}× a day`);
+    understood.push(`${fields.slots.length}× a day`);
   }
 
   // Food relation

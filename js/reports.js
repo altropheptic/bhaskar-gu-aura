@@ -43,9 +43,9 @@ export function printDoctorReport() {
     el('p', { text: `Conditions: ${p.conditions || 'not recorded'} · Allergies: ${p.allergies || 'not recorded'}` }),
     el('h2', { text: 'Current medicines' }),
     el('table', {}, [
-      el('thead', {}, [row(['Medicine', 'Strength', 'Contains', 'Dose', 'Times', 'With food', 'Taken (30 days)'], 'th')]),
+      el('thead', {}, [row(['Medicine', 'Strength', 'Contains', 'Doctor', 'Dose', 'Times', 'With food', 'Taken (30 days)'], 'th')]),
       el('tbody', {}, state.medicines.filter((m) => m.active).map((m) => row([
-        m.name, m.dosage || '', m.generic_name || '', doseLabel(m), m.times.map(formatTime).join(', '),
+        m.name, m.dosage || '', m.generic_name || '', m.doctor || '', doseLabel(m), m.times.map(formatTime).join(', '),
         MEAL_LABEL[m.meal] ?? '', adherenceByMed.get(m.id) === null || adherenceByMed.get(m.id) === undefined ? '–' : `${adherenceByMed.get(m.id)}%`,
       ]))),
     ]),

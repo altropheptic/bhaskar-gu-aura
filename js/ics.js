@@ -58,8 +58,18 @@ export function buildIcs(profile, medicines) {
   return lines.map(fold).join('\r\n');
 }
 
+const icsKey = (profile) => `dawai-dost-ics-${profile?.id ?? 'none'}`;
+/** Fingerprint of everything that affects alarms. */
+const fingerprint = (medicines) => JSON.stringify(medicines.filter((m) => m.active).map((m) => [m.id, m.times, m.days, m.start_date, m.end_date]));
+
+/** True when the last downloaded calendar file still matches the schedule. */
+export function icsIsCurrent(profile, medicines) {
+  try { return localStorage.getItem(icsKey(profile)) === fingerprint(medicines); } catch { return false; }
+}
+
 /** Download the .ics file. */
 export function downloadIcs(profile, medicines) {
+  try { localStorage.setItem(icsKey(profile), fingerprint(medicines)); } catch { /* storage blocked */ }
   const blob = new Blob([buildIcs(profile, medicines)], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

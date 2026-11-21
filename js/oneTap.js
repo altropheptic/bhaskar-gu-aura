@@ -9,6 +9,7 @@ import { el, icon, pillIcon, formatTime, doseLabel, MEAL_LABEL } from './ui.js';
 import { currentProfile, subscribe } from './state.js';
 import { todayDoses, takeOrSkip } from './doseActions.js';
 import { speakReminder } from './voice.js';
+import { photoImg } from './photo.js';
 
 const dialog = () => /** @type {HTMLDialogElement} */ (document.getElementById('onetap-dialog'));
 
@@ -35,9 +36,10 @@ function render() {
     say.addEventListener('click', () => speakReminder(profile, [now.med], say, { force: true }));
     body = [
       el('p', { className: 'big-time', text: now.status === 'missed' ? `Missed at ${formatTime(now.time)}` : `Now · ${formatTime(now.time)}` }),
-      pillIcon(now.med),
+      now.med.photo ? photoImg(now.med.photo, `Photo of ${now.med.name}`, 'onetap__photo') : pillIcon(now.med),
       el('h2', { className: 'onetap__name', text: now.med.name, attrs: { id: 'onetap-title' } }),
       el('p', { className: 'onetap__how', text: `${doseLabel(now.med)} · ${MEAL_LABEL[now.med.meal] ?? ''}` }),
+      now.med.kept_at && el('p', { className: 'onetap__place' }, [icon('pin'), now.med.kept_at]),
       go,
       say,
     ];
