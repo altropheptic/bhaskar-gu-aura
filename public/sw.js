@@ -6,8 +6,8 @@
  *  - static assets (hashed JS/CSS, fonts, icons): stale-while-revalidate
  *  - /api/* and the caregiver page are never cached (live, private data)
  */
-const CACHE = 'dawai-dost-v1';
-const SHELL = ['/', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png'];
+const CACHE = 'dawai-dost-v2';
+const SHELL = ['/', '/manifest.webmanifest', '/favicon.png', '/icon-192.png', '/brand/mark.webp', '/brand/logo-full.webp'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

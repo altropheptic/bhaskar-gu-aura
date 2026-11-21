@@ -9,16 +9,15 @@
       content="Dawai Dost is a free, no-sign-up medicine reminder for elders and their families. Reminders follow meal times, speak in Hindi or English, show where each medicine is kept, prevent double doses and keep family informed."
     />
     <meta name="theme-color" content="#EEF1EC" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <!-- Inline SVG sprite: icons are referenced with <use href="#i-..."> so no icon font or CDN is needed. -->
     <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
-      <symbol id="i-logo" viewBox="0 0 48 48"><rect x="4" y="16" width="40" height="16" rx="8" transform="rotate(-35 24 24)" fill="currentColor" stroke="none"/><path d="M17.4 33.4 30.6 14.6" fill="none" stroke-width="3" stroke-linecap="round"/></symbol>
       <!-- Glossy pill renders: one shape per medicine type, coloured with currentColor, lit with shared gradients. -->
       <defs>
         <radialGradient id="pg-hl" cx=".34" cy=".26" r=".7">
@@ -67,10 +66,8 @@
     <div class="landing" id="landing">
       <header class="site-header container">
         <a class="brand" href="/" aria-label="Dawai Dost home">
-          <svg class="brand__mark" aria-hidden="true"><use href="#i-logo" /></svg>
-          <span class="brand__name">Dawai Dost</span>
+          <img class="brand__logo" src="/brand/logo-full.webp" alt="Dawai Dost · दवाई दोस्त" width="640" height="172" fetchpriority="high" />
         </a>
-        <span class="brand__hi" lang="hi">दवाई दोस्त</span>
       </header>
 
       <main id="main">
@@ -89,7 +86,6 @@
               <button type="button" class="btn btn--primary btn--xl" id="demo-btn" data-open-app>Get started</button>
               <a class="btn btn--outline btn--xl" href="#solution">How it works</a>
             </div>
-            <p class="welcome__note">Free · No sign-up · No ads</p>
           </div>
           <div class="welcome__preview">
             <figure class="device device--hero"><div class="device__screen"><span class="device__status" aria-hidden="true"><span>9:41</span><span class="device__icons"><i></i><i></i><i></i></span></span><img src="/shots/today.webp" alt="Dawai Dost Today screen: Maa's iron tablet is due now, with a big Taken button" width="389" height="844" fetchpriority="high" decoding="async" /></div><img class="device__frame" src="/mock/pixel-frame.webp" alt="" width="720" height="1516" aria-hidden="true" /></figure>
@@ -232,7 +228,7 @@
     <div class="shell" id="app" hidden>
       <aside class="sidebar" aria-label="App navigation">
         <a class="brand sidebar__brand" href="/" aria-label="Dawai Dost home">
-          <svg class="brand__mark" aria-hidden="true"><use href="#i-logo" /></svg>
+          <img class="brand__mark" src="/brand/mark.webp" alt="" width="128" height="128" />
           <span class="brand__name">Dawai Dost</span>
         </a>
         <nav class="nav" aria-label="Sections">

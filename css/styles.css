@@ -97,7 +97,9 @@ hr { border: 0; border-top: 1px solid var(--line); margin: var(--s5) 0; }
 
 /* ---------- Brand & avatar ---------- */
 .brand { display: flex; align-items: center; gap: var(--s2); text-decoration: none; color: var(--ink); }
-.brand__mark { width: 34px; height: 34px; color: var(--brand); stroke: var(--lime); flex: none; }
+.brand__mark { width: 34px; height: 34px; flex: none; object-fit: contain; }
+.brand__logo { display: block; height: 52px; width: auto; }
+@media (max-width: 480px) { .brand__logo { height: 42px; } }
 .brand__name { font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em; }
 .brand__hi { color: var(--muted); font-size: 0.9rem; }
 .avatar {
@@ -306,11 +308,11 @@ details summary { cursor: pointer; font-weight: 600; min-height: var(--tap); dis
 .site-header { display: flex; align-items: center; justify-content: space-between; min-height: 76px; }
 .welcome { position: relative; display: grid; gap: var(--s6); padding-block: var(--s5) var(--s7); align-items: center; }
 .welcome__text { position: relative; z-index: 1; display: grid; gap: var(--s4); justify-items: start; }
-.welcome h1 em { font-style: normal; background: var(--lime); padding: 0 0.12em; border-radius: 0.18em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+/* Highlighter stroke sits low on the word, so it never covers the line above. */
+.welcome h1 em { font-style: normal; padding: 0 0.1em; margin-inline: -0.04em; border-radius: 0.14em; background: linear-gradient(var(--lime), var(--lime)) 0 62% / 100% 0.62em no-repeat; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .lead { font-size: 1.15rem; color: var(--muted); max-width: 30rem; }
 .welcome__actions { display: flex; flex-wrap: wrap; gap: var(--s3); margin-top: var(--s2); }
 .welcome__preview { margin: 0; position: relative; z-index: 1; }
-.welcome__note { color: var(--muted); font-size: 0.92rem; font-weight: 600; }
 @media (min-width: 56rem) { .welcome { grid-template-columns: 1.1fr 1fr; padding-block: var(--s6) var(--s8); } }
 
 .floaters { position: absolute; inset: 0; pointer-events: none; z-index: 0; }

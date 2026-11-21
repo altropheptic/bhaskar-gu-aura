@@ -1,3 +1,5 @@
+<p><img src="public/brand/logo-full.webp" width="360" alt="Dawai Dost · दवाई दोस्त" /></p>
+
 # Dawai Dost · दवाई दोस्त
 
 **Medicine reminders that follow an elder's day, speak in Hindi or English, and keep the family in the loop.**
