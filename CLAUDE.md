@@ -38,14 +38,14 @@ When planning or reviewing work, say which criteria it serves; the README gets o
   - Today redesign: greeting, week strip, "Next up" hero, time rail; floating + on phones.
   - Fixes: tolerant log matching after re-timing (`findLog`), sticky sidebar.
   - Migrations: `routine_slots_and_place_cue`, `medicine_doctor_and_photo`.
-- Gemini/ElevenLabs keys are set in Vercel **Production only**, so AI and voice can only be tested on the live site after the owner approves a deploy.
+- Gemini/ElevenLabs keys are set in Vercel **Production only**: test AI and voice on the live site (local `/api` has no keys).
 - Round-2 UI rework committed locally (see `git log`).
   - App shell, terse copy, symmetric grids.
   - Verified in Chrome on desktop and at 390px width (no horizontal overflow on any tab).
 - Waiting on owner:
   - Enable Supabase anonymous sign-ins (still off as of round 3; until then the app runs in on-device "offline mode").
   - After that: test AI, voice, cloud saving and caregiver links end-to-end.
-- Deployed: commit `690c63e` is live (Vercel READY, smoke-tested). Live AI/voice still blocked: Supabase anonymous sign-ins are off, so no session JWT reaches `/api`.
+- Live and verified (21 Nov): Supabase anonymous sign-in on (cloud saving works); Gemini 3.5 Flash Lite parse + explain OK (~13 s); ElevenLabs Hindi/English audio OK (~12 s); caregiver link create/open/revoke OK. Gemini uses free-tier Lite models (15 req/min, 500/day) with fallbacks.
 - Not yet: PWA offline test, print preview.
 
 ## Project facts
