@@ -1,40 +1,30 @@
 /**
- * Today screen: what to take now, what's done, what was missed.
+ * Today screen.
  *
- * Layout follows patterns common to well-rated medication app designs:
- * greeting, week strip, one bold "Next up" card, then a time-rail timeline.
- * Each dose carries three recognition cues: the pill's look (or its photo),
- * the routine moment ("after breakfast") and where it is kept.
+ * Layout follows patterns shared by well-rated medication app designs:
+ *   1. week strip (tap a day to look back or ahead)
+ *   2. "Up next" hero: tags, the medicine, a huge time, a glossy pill and one big "Taken" button
+ *   3. "Needs attention": other due or missed doses, with Took it / Skip
+ *   4. "Later today": pastel cards tinted by each medicine's colour
+ *   5. "Done": taken or skipped doses, with Undo
+ * Each dose carries three recognition cues: the pill's look (or its photo), the
+ * routine moment ("after breakfast") and where it is kept.
  *
  * Only due or missed doses for today can be logged; future doses can't be
  * "taken early" by accident, one of the ways double dosing happens.
  */
-import { el, icon, showBanner, formatTime, formatClock, doseLabel, MEAL_LABEL, emptyState } from './ui.js';
+import { el, icon, pillIcon, showBanner, formatClock, doseLabel, MEAL_LABEL, emptyState, timeEl, tintClass } from './ui.js';
 import { state, undoDose, currentProfile, emit } from './state.js';
-import { findLog, groupByTime, daysOfSupply, duplicateGenerics, dosesForDay, doseStatus, dayScore, addDays, startOfDay, isoDate } from './schedule.js';
+import { findLog, daysOfSupply, duplicateGenerics, dosesForDay, doseStatus, dayScore, addDays, startOfDay, isoDate } from './schedule.js';
 import { takeOrSkip } from './doseActions.js';
 import { openOneTap } from './oneTap.js';
 import { speakReminder } from './voice.js';
 import { openMedicineDialog } from './medForm.js';
 import { doseSlotLabel } from './routine.js';
-import { medMedia } from './photo.js';
-import { healthSummary } from './reminderHealth.js';
+import { medMedia, photoImg } from './photo.js';
 
 /** Which day the strip has selected (null = today). */
 let viewDay = null;
-
-const STATUS_CHIP = {
-  taken: (log) => el('span', { className: 'chip chip--ok' }, [icon('check'), `Taken ${formatClock(log.logged_at)}`]),
-  skipped: () => el('span', { className: 'chip chip--skipped' }, [icon('skip'), 'Skipped']),
-  missed: () => el('span', { className: 'chip chip--missed' }, [icon('cross'), 'Missed']),
-  due: () => el('span', { className: 'chip chip--due' }, [icon('bell'), 'Due now']),
-  upcoming: (_, dose) => el('span', { className: 'chip' }, [icon('clock'), formatTime(dose.time)]),
-};
-
-function greeting(now) {
-  const h = now.getHours();
-  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-}
 
 function countdown(at, now) {
   const min = Math.round((at - now) / 60_000);
@@ -44,10 +34,10 @@ function countdown(at, now) {
   return `in ${h} h${min % 60 ? ` ${min % 60} min` : ''}`;
 }
 
-/** "1 tablet · After food" + routine moment, e.g. "1 tablet · After food · Breakfast". */
-function howText(dose) {
-  return [doseLabel(dose.med), MEAL_LABEL[dose.med.meal]].filter(Boolean).join(' · ');
-}
+/** "1 tablet · After food · Breakfast" */
+const howText = (dose) => [doseLabel(dose.med), MEAL_LABEL[dose.med.meal], doseSlotLabel(dose.slot, dose.time)].filter(Boolean).join(' · ');
+
+const placeEl = (med) => med.kept_at && el('span', { className: 'place' }, [icon('pin'), med.kept_at]);
 
 /* ---------- week strip ---------- */
 function weekStrip(today, now) {
@@ -63,88 +53,107 @@ function weekStrip(today, now) {
     }
     return el('button', {
       className: `week__day${isSel ? ' is-selected' : ''}${isToday ? ' is-today' : ''}`,
-      attrs: { type: 'button', 'aria-pressed': String(isSel), 'aria-label': day.toDateString() },
+      attrs: { type: 'button', 'aria-pressed': String(isSel), 'aria-label': `${day.toDateString()}${isToday ? ' (today)' : ''}` },
       on: { click: () => { viewDay = isToday ? null : day; emit(); } },
     }, [
-      el('span', { className: 'week__name', text: isToday ? 'Today' : day.toLocaleDateString([], { weekday: 'short' }) }),
+      el('span', { className: 'week__name', text: day.toLocaleDateString([], { weekday: 'short' }) }),
       el('span', { className: 'week__num tabular', text: String(day.getDate()) }),
       el('span', { className: `week__dot ${dot}`, attrs: { 'aria-hidden': 'true' } }),
     ]);
   }));
 }
 
-/* ---------- "Next up" hero ---------- */
-function hero(doses, profile, now) {
-  const focus = doses.find((d) => d.status === 'due') ?? doses.find((d) => d.status === 'missed') ?? doses.find((d) => d.status === 'upcoming');
-  const oneTap = el('button', { className: 'btn btn--ghost hero__ghost', attrs: { type: 'button' }, on: { click: () => openOneTap() } }, ['One-tap mode']);
+/* ---------- "Up next" hero ---------- */
+function hero(focus, doses, profile, now) {
   if (!focus) {
-    return el('section', { className: 'hero hero--done', attrs: { 'aria-label': 'Next dose' } }, [
-      el('span', { className: 'hero__badge' }, [icon('check')]),
-      el('div', { className: 'hero__body' }, [
-        el('p', { className: 'hero__eyebrow', text: doses.length ? 'All done' : 'Free day' }),
-        el('h3', { className: 'hero__title', text: doses.length ? 'Every dose taken today' : 'Nothing scheduled today' }),
+    return el('section', { className: 'next next--done', attrs: { 'aria-label': 'Next dose' } }, [
+      el('span', { className: 'next__badge', attrs: { 'aria-hidden': 'true' } }, [icon('check')]),
+      el('div', { className: 'stack' }, [
+        el('span', { className: 'tag tag--lime', text: doses.length ? 'All done' : 'Free day' }),
+        el('p', { className: 'next__name', text: doses.length ? 'Every dose taken today. Well done!' : 'Nothing scheduled today.' }),
       ]),
     ]);
   }
   const { med } = focus;
-  const label = focus.status === 'due' ? 'Now' : focus.status === 'missed' ? 'Missed' : 'Next up';
-  const actions = el('div', { className: 'hero__actions' });
+  const tags = el('div', { className: 'next__tags' }, [
+    focus.status === 'due' ? el('span', { className: 'tag tag--due' }, [icon('bell'), 'Due now'])
+      : focus.status === 'missed' ? el('span', { className: 'tag tag--missed' }, [icon('cross'), 'Missed'])
+        : el('span', { className: 'tag tag--lime', text: 'Up next' }),
+    el('span', { className: 'tag tag--ghost', text: focus.status === 'missed' ? `was due ${formatClock(focus.at)}` : countdown(focus.at, now) }),
+  ]);
+
+  const actions = el('div', { className: 'next__actions' });
+  const say = el('button', { className: 'round-btn', attrs: { type: 'button', 'aria-label': 'Say it aloud' } }, [icon('speaker')]);
+  say.addEventListener('click', () => speakReminder(profile, [med], undefined, { force: true }));
+  const big = el('button', { className: 'round-btn', attrs: { type: 'button', 'aria-label': 'One-tap big mode' }, on: { click: () => openOneTap() } }, [icon('expand')]);
+  actions.append(say, big);
   if (focus.status !== 'upcoming') {
-    const take = el('button', { className: 'btn btn--xl hero__primary', attrs: { type: 'button' } }, [icon('check'), focus.status === 'missed' ? 'I took it (late)' : 'I took it']);
+    const take = el('button', { className: 'btn-taken', attrs: { type: 'button' } }, [icon('check'), focus.status === 'missed' ? 'Took it late' : 'Taken']);
     take.addEventListener('click', () => takeOrSkip(focus, 'taken', take));
     actions.append(take);
+  } else {
+    actions.append(el('span', { className: 'muted', text: 'You can mark it from 30 min before.' }));
   }
-  const say = el('button', { className: 'btn btn--ghost hero__ghost', attrs: { type: 'button' } }, [icon('speaker'), 'Say aloud']);
-  say.addEventListener('click', () => speakReminder(profile, [med], say, { force: true }));
-  actions.append(say, oneTap);
 
-  return el('section', { className: `hero hero--${focus.status}`, attrs: { 'aria-label': 'Next dose' } }, [
-    medMedia(med, 'med-media--xl'),
-    el('div', { className: 'hero__body' }, [
-      el('p', { className: 'hero__eyebrow', text: `${label} · ${doseSlotLabel(focus.slot, focus.time)}` }),
-      el('h3', { className: 'hero__title', text: [med.name, med.dosage].filter(Boolean).join(' ') }),
-      el('p', { className: 'hero__how', text: howText(focus) }),
-      med.kept_at && el('p', { className: 'hero__place' }, [icon('pin'), med.kept_at]),
+  return el('section', { className: `next next--${focus.status} ${tintClass(med.color)}`, attrs: { 'aria-label': 'Next dose' } }, [
+    tags,
+    el('div', { className: 'next__info' }, [
+      el('p', { className: 'next__name', text: [med.name, med.dosage].filter(Boolean).join(' ') }),
+      el('p', { className: 'next__how', text: howText(focus) }),
+      placeEl(med),
     ]),
-    el('div', { className: 'hero__time' }, [
-      el('span', { className: 'hero__clock tabular', text: formatTime(focus.time) }),
-      el('span', { className: 'hero__count', text: focus.status === 'missed' ? "Don't double up" : countdown(focus.at, now) }),
-    ]),
+    el('div', { className: 'next__art' }, [med.photo ? el('span', { className: 'med-media med-media--xl' }, [photoImg(med.photo, `Photo of ${med.name}`)]) : pillIcon(med)]),
+    timeEl('p', 'next__time', focus.time),
+    focus.status === 'missed' && el('p', { className: 'next__note', text: "Don't take two doses together to catch up." }),
     actions,
   ]);
 }
 
-/* ---------- timeline ---------- */
-function doseTile(dose, isToday) {
+/* ---------- rows and cards ---------- */
+const STATUS_CHIP = {
+  taken: (log) => el('span', { className: 'chip chip--ok' }, [icon('check'), `Taken ${formatClock(log.logged_at)}`]),
+  skipped: () => el('span', { className: 'chip chip--skipped' }, [icon('skip'), 'Skipped']),
+  missed: () => el('span', { className: 'chip chip--missed' }, [icon('cross'), 'Missed']),
+  due: () => el('span', { className: 'chip chip--due' }, [icon('bell'), 'Due now']),
+};
+
+function doseRow(dose, isToday) {
   const log = findLog(dose, state.logIndex);
   const { med, status } = dose;
-  const side = el('div', { className: 'tile__side' }, [STATUS_CHIP[status](log, dose)]);
+  const end = el('div', { className: 'row__end' }, [timeEl('span', 'time-chip', dose.time)]);
+  if (status !== 'upcoming') end.append(STATUS_CHIP[status](log));
 
   if (isToday && (status === 'due' || status === 'missed')) {
-    const take = el('button', {
-      className: 'btn btn--primary btn--sm',
-      attrs: { type: 'button', 'aria-label': `I took ${med.name} ${med.dosage ?? ''}` },
-    }, [icon('check'), 'Took it']);
+    const take = el('button', { className: 'btn btn--primary btn--sm', attrs: { type: 'button', 'aria-label': `I took ${med.name}` } }, [icon('check'), 'Took it']);
     take.addEventListener('click', () => takeOrSkip(dose, 'taken', take));
     const skip = el('button', { className: 'btn btn--ghost btn--sm', text: 'Skip', attrs: { type: 'button', 'aria-label': `Skip ${med.name}` } });
     skip.addEventListener('click', () => takeOrSkip(dose, 'skipped', skip));
-    side.append(take, skip);
+    end.append(take, skip);
   } else if (isToday && log) {
-    side.append(el('button', {
-      className: 'btn btn--ghost btn--sm', text: 'Undo',
-      attrs: { type: 'button', 'aria-label': `Undo ${med.name}` },
+    end.append(el('button', {
+      className: 'btn btn--ghost btn--sm', text: 'Undo', attrs: { type: 'button', 'aria-label': `Undo ${med.name}` },
       on: { click: () => undoDose(log).catch((e) => showBanner('error', e.message)) },
     }));
   }
 
-  return el('article', { className: `tile tile--${status}`, attrs: { 'aria-label': `${med.name} at ${formatTime(dose.time)}: ${status}` } }, [
+  return el('article', { className: `row row--${status}`, attrs: { 'aria-label': `${med.name}: ${status}` } }, [
     medMedia(med),
-    el('div', { className: 'tile__main' }, [
-      el('div', { className: 'tile__name', text: [med.name, med.dosage].filter(Boolean).join(' ') }),
-      el('div', { className: 'tile__meta', text: howText(dose) }),
-      med.kept_at && el('div', { className: 'tile__place' }, [icon('pin'), med.kept_at]),
+    el('div', { className: 'row__main' }, [
+      el('span', { className: 'row__name', text: [med.name, med.dosage].filter(Boolean).join(' ') }),
+      el('span', { className: 'row__how', text: howText(dose) }),
+      placeEl(med),
     ]),
-    side,
+    end,
+  ]);
+}
+
+function laterCard(dose) {
+  const { med } = dose;
+  return el('article', { className: `later ${tintClass(med.color)}`, attrs: { 'aria-label': `${med.name} later today` } }, [
+    el('div', { className: 'later__art' }, [med.photo ? medMedia(med) : pillIcon(med)]),
+    timeEl('p', 'later__time', dose.time),
+    el('p', { className: 'later__name', text: [med.name, med.dosage].filter(Boolean).join(' ') }),
+    el('p', { className: 'later__how', text: `${doseLabel(med)} · ${doseSlotLabel(dose.slot, dose.time)}` }),
   ]);
 }
 
@@ -163,16 +172,7 @@ function alerts() {
   return el('ul', { className: 'alert-list', attrs: { 'aria-label': 'Warnings' } }, items.map((t) => el('li', {}, [icon('warn'), el('span', { text: t })])));
 }
 
-/** Small "Reminders: ready / 2 to fix" chip that opens the health check. */
-function healthChip() {
-  const { ready, total } = healthSummary();
-  const ok = ready === total;
-  return el('button', {
-    className: `chip health-chip ${ok ? 'chip--ok' : 'chip--due'}`,
-    attrs: { type: 'button', 'aria-label': `Reminder check: ${ready} of ${total} ready` },
-    on: { click: () => document.querySelector('.nav__item[data-tab="care"]')?.click() },
-  }, [icon(ok ? 'check' : 'bell'), ok ? 'Reminders ready' : `${total - ready} reminder fix${total - ready === 1 ? '' : 'es'}`]);
-}
+const secHead = (title, note) => el('div', { className: 'sec-head' }, [el('h3', { text: title }), note && el('span', { text: note })]);
 
 /** @param {HTMLElement} panel */
 export function renderToday(panel) {
@@ -191,36 +191,45 @@ export function renderToday(panel) {
 
   const head = el('div', { className: 'panel-head' }, [
     el('div', {}, [
-      el('h2', { text: `${greeting(now)}, ${profile?.name ?? ''}` }),
-      el('p', { text: day.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' }) }),
+      el('p', { className: 'eyebrow-date', text: day.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' }) }),
+      el('h2', { text: isToday ? 'Today' : day.toLocaleDateString([], { weekday: 'long' }) }),
     ]),
-    el('div', { className: 'btn-row' }, [healthChip(), ring]),
+    ring,
   ]);
 
   if (!state.medicines.length) {
     panel.replaceChildren(head, el('div', { className: 'card' }, [
-      emptyState('No medicines yet.', { label: 'Add medicine', onClick: () => openMedicineDialog() }),
+      emptyState(`No medicines yet for ${profile?.name ?? 'this person'}.`, { label: 'Add medicine', onClick: () => openMedicineDialog() }),
     ]));
     return;
   }
 
-  const timeline = el('section', { className: 'rail', attrs: { 'aria-label': isToday ? 'Today' : day.toDateString() } });
-  if (!doses.length) timeline.append(el('div', { className: 'card' }, [emptyState('No doses on this day.')]));
-  for (const [time, group] of groupByTime(doses)) {
-    timeline.append(el('div', { className: 'rail__row' }, [
-      el('div', { className: 'rail__time' }, [
-        el('span', { className: 'rail__clock tabular', text: formatTime(time) }),
-        el('span', { className: 'rail__label', text: doseSlotLabel(group[0].slot, time) }),
-      ]),
-      el('div', { className: 'rail__tiles' }, group.map((d) => doseTile(d, isToday))),
-    ]));
+  // Another day: one simple read-only list
+  if (!isToday) {
+    panel.replaceChildren(
+      head,
+      weekStrip(today, now),
+      doses.length ? el('div', { className: 'rows' }, doses.map((d) => doseRow(d, false))) : el('div', { className: 'card' }, [emptyState('No doses on this day.')]),
+    );
+    return;
   }
+
+  const focus = doses.find((d) => d.status === 'due') ?? doses.find((d) => d.status === 'missed') ?? doses.find((d) => d.status === 'upcoming');
+  const rest = doses.filter((d) => d !== focus);
+  const attention = rest.filter((d) => d.status === 'due' || d.status === 'missed');
+  const later = rest.filter((d) => d.status === 'upcoming');
+  const finished = rest.filter((d) => d.status === 'taken' || d.status === 'skipped');
 
   panel.replaceChildren(
     head,
     weekStrip(today, now),
-    isToday ? hero(doses, profile, now) : '',
-    isToday ? (alerts() ?? '') : '',
-    timeline,
+    hero(focus, doses, profile, now),
+    alerts() ?? '',
+    attention.length ? secHead('Needs attention', `${attention.length}`) : '',
+    attention.length ? el('div', { className: 'rows' }, attention.map((d) => doseRow(d, true))) : '',
+    later.length ? secHead('Later today', `${later.length} more`) : '',
+    later.length ? el('div', { className: 'later-grid' }, later.map(laterCard)) : '',
+    finished.length ? secHead('Done', `${finished.length}`) : '',
+    finished.length ? el('div', { className: 'rows' }, finished.map((d) => doseRow(d, true))) : '',
   );
 }

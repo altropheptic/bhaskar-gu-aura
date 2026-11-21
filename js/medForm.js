@@ -9,7 +9,7 @@
  *      "Bedtime") instead of clock pickers, which older adults find hard.
  * AI never saves anything by itself: it only fills the form, and a person checks and saves.
  */
-import { el, icon, openDialog, showBanner, setLoading, toast, pillIcon, formatTime } from './ui.js';
+import { el, icon, openDialog, showBanner, setLoading, toast, pillIcon, formatTime, tintClass, FORM_UNIT } from './ui.js';
 import { saveMedicine, currentProfile } from './state.js';
 import { parsePrescription } from './quickEntry.js';
 import { parseTextWithAi, parsePhotoWithAi } from './ai.js';
@@ -37,18 +37,17 @@ function field(label, input, hint) {
   ]);
 }
 
-function select(name, options, labels, value) {
-  return el('select', { attrs: { name } }, options.map((o) => el('option', { text: labels[o] ?? o, attrs: { value: o, selected: o === value } })));
+/** Segmented control: radio inputs styled as pills (keyboard + FormData still work). */
+function seg(name, options, labels, value, iconFor) {
+  return el('div', { className: 'seg', attrs: { role: 'radiogroup' } }, options.map((o) => el('label', {}, [
+    el('input', { attrs: { type: 'radio', name, value: o, checked: o === value } }),
+    iconFor ? iconFor(o) : null,
+    labels[o] ?? o,
+  ])));
 }
 
 function radioGroup(legend, name, options, labels, value) {
-  return el('fieldset', {}, [
-    el('legend', { text: legend }),
-    el('div', { className: 'check-row' }, options.map((o) => el('label', {}, [
-      el('input', { attrs: { type: 'radio', name, value: o, checked: o === value } }),
-      labels[o] ?? o,
-    ]))),
-  ]);
+  return el('fieldset', {}, [el('legend', { text: legend }), seg(name, options, labels, value)]);
 }
 
 /**
@@ -72,9 +71,30 @@ export function openMedicineDialog(existing) {
   const nameIn = el('input', { attrs: { name: 'name', maxlength: 80, required: true, autocomplete: 'off', value: m.name } });
   const genericIn = el('input', { attrs: { name: 'generic_name', maxlength: 80, autocomplete: 'off', value: m.generic_name ?? '' } });
   const dosageIn = el('input', { attrs: { name: 'dosage', maxlength: 40, autocomplete: 'off', placeholder: '500 mg', value: m.dosage ?? '' } });
-  const formSel = select('form', FORMS, FORM_LABEL, m.form);
-  const shapeSel = select('shape', SHAPES, SHAPE_LABEL, m.shape);
-  const qtyIn = el('input', { attrs: { name: 'dose_qty', type: 'number', min: 0.5, max: 20, step: 0.5, inputmode: 'decimal', value: m.dose_qty } });
+  const formSeg = seg('form', FORMS, FORM_LABEL, m.form);
+  const shapeSeg = seg('shape', SHAPES, SHAPE_LABEL, m.shape, (o) => pillIcon({ color: 'white', shape: o }));
+  const qtyIn = el('input', { attrs: { name: 'dose_qty', type: 'number', min: 0.5, max: 20, step: 0.5, inputmode: 'decimal', value: m.dose_qty, 'aria-label': 'Dose each time' } });
+  const unitEl = el('span', { className: 'stepper__unit' });
+  const currentForm = () => /** @type {HTMLInputElement} */ (formSeg.querySelector('input:checked'))?.value ?? 'tablet';
+  const updateUnit = () => {
+    const unit = FORM_UNIT[currentForm()] ?? 'dose';
+    const qty = Number(qtyIn.value) || 1;
+    unitEl.textContent = qty !== 1 && !['ml', 'drops'].includes(unit) ? `${unit}s` : unit;
+  };
+  const step = (delta) => {
+    const next = Math.min(20, Math.max(0.5, (Number(qtyIn.value) || 1) + delta));
+    qtyIn.value = String(next);
+    updateUnit();
+  };
+  const stepper = el('div', { className: 'stepper' }, [
+    el('button', { text: '−', attrs: { type: 'button', 'aria-label': 'Less' }, on: { click: () => step(-0.5) } }),
+    qtyIn,
+    el('button', { text: '+', attrs: { type: 'button', 'aria-label': 'More' }, on: { click: () => step(0.5) } }),
+    unitEl,
+  ]);
+  qtyIn.addEventListener('input', updateUnit);
+  formSeg.addEventListener('change', updateUnit);
+  updateUnit();
   const stockIn = el('input', { attrs: { name: 'stock', type: 'number', min: 0, max: 10000, step: 0.5, inputmode: 'decimal', placeholder: 'Optional', value: m.stock ?? '' } });
   const refillIn = el('input', { attrs: { name: 'refill_at', type: 'number', min: 0, max: 60, step: 1, value: m.refill_at } });
   const startIn = el('input', { attrs: { name: 'start_date', type: 'date', value: m.start_date } });
@@ -97,17 +117,14 @@ export function openMedicineDialog(existing) {
       photoBox.replaceChildren(
         photoImg(photoData, 'Photo of the medicine', 'med-photo med-photo--lg'),
         el('div', { className: 'btn-row' }, [
-          el('span', { className: 'btn btn--outline btn--sm file-btn' }, [icon('camera'), 'Change', fileIn]),
+          el('span', { className: 'btn btn--ghost btn--sm file-btn' }, ['Change', fileIn]),
           el('button', { className: 'btn btn--danger btn--sm', text: 'Remove', attrs: { type: 'button' }, on: { click: () => { photoData = null; renderPhoto(); } } }),
         ]),
       );
     } else {
       photoBox.replaceChildren(
-        el('span', { className: 'photo-field__empty', attrs: { 'aria-hidden': 'true' } }, [icon('camera')]),
-        el('div', {}, [
-          el('span', { className: 'btn btn--outline btn--sm file-btn' }, [icon('camera'), 'Add photo', fileIn]),
-          el('p', { className: 'field__hint', text: 'Strip or box, to recognise it' }),
-        ]),
+        el('span', { className: 'photo-field__empty file-btn' }, [icon('camera'), fileIn]),
+        el('span', { className: 'field__hint', text: 'Add photo' }),
       );
     }
   }
@@ -116,13 +133,10 @@ export function openMedicineDialog(existing) {
   /* ---------- colour ---------- */
   const colourSet = el('fieldset', {}, [
     el('legend', { text: 'Colour' }),
-    el('div', { className: 'check-row' }, COLORS.map((c) => el('label', {}, [
-      el('input', { attrs: { type: 'radio', name: 'color', value: c, checked: c === m.color } }),
-      pillIcon({ color: c, shape: 'round' }),
-      c[0].toUpperCase() + c.slice(1),
+    el('div', { className: 'swatches', attrs: { role: 'radiogroup' } }, COLORS.map((c) => el('label', { className: tintClass(c), attrs: { title: c } }, [
+      el('input', { attrs: { type: 'radio', name: 'color', value: c, checked: c === m.color, 'aria-label': c[0].toUpperCase() + c.slice(1) } }),
     ]))),
   ]);
-  colourSet.querySelectorAll('.pill').forEach((p) => p.classList.add('pill--sm'));
 
   /* ---------- when: routine chips + optional custom times ---------- */
   const mealSet = radioGroup('Food', 'meal', MEALS, MEAL_TEXT, m.meal);
@@ -160,7 +174,7 @@ export function openMedicineDialog(existing) {
 
   const daysSet = el('fieldset', {}, [
     el('legend', { text: 'Days' }),
-    el('div', { className: 'check-row' }, DAY_NAMES.map((d, i) => el('label', {}, [
+    el('div', { className: 'days' }, DAY_NAMES.map((d, i) => el('label', {}, [
       el('input', { attrs: { type: 'checkbox', name: 'days', value: i, checked: m.days.includes(i) } }), d,
     ]))),
   ]);
@@ -173,25 +187,29 @@ export function openMedicineDialog(existing) {
   const saveBtn = el('button', { className: 'btn btn--primary btn--xl', text: existing ? 'Save changes' : 'Save medicine', attrs: { type: 'submit' } });
 
   form.append(
-    el('h3', { className: 'section-title', text: 'Medicine' }),
-    photoBox,
-    field('Name', nameIn),
-    el('div', { className: 'field-grid' }, [field('Strength', dosageIn), field('Generic (salt)', genericIn)]),
-    el('div', { className: 'field-grid' }, [field('Type', formSel), field('Shape', shapeSel), field('Dose', qtyIn)]),
-    colourSet,
-
-    el('h3', { className: 'section-title', text: 'When' }),
-    mealSet,
-    el('fieldset', {}, [el('legend', { text: `Routine (${profile.name}'s day)` }), slotBox]),
-    timesBox,
-    daysSet,
-
-    el('h3', { className: 'section-title', text: 'Details' }),
-    el('div', { className: 'field-grid' }, [field('Kept at', keptIn), field('Doctor', doctorIn)]),
-    el('div', { className: 'field-grid' }, [field('Start date', startIn), field('End date (optional)', endIn)]),
-    el('div', { className: 'field-grid' }, [field('In stock (optional)', stockIn), field('Refill alert (days left)', refillIn)]),
-    field('Notes', notesIn),
-    activeRow,
+    el('div', { className: 'form-card' }, [
+      el('span', { className: 'section-title', text: 'Medicine' }),
+      el('div', { className: 'med-top' }, [photoBox, el('div', {}, [field('Name', nameIn), field('Strength', dosageIn)])]),
+      field('Generic (salt)', genericIn),
+      el('fieldset', {}, [el('legend', { text: 'Type' }), formSeg]),
+      el('fieldset', {}, [el('legend', { text: 'Shape' }), shapeSeg]),
+      el('fieldset', {}, [el('legend', { text: 'Dose each time' }), stepper]),
+      colourSet,
+    ]),
+    el('div', { className: 'form-card' }, [
+      el('span', { className: 'section-title', text: 'When' }),
+      mealSet,
+      el('fieldset', {}, [el('legend', { text: `${profile.name}'s routine` }), slotBox, timesBox]),
+      daysSet,
+    ]),
+    el('div', { className: 'form-card' }, [
+      el('span', { className: 'section-title', text: 'Details' }),
+      el('div', { className: 'field-grid' }, [field('Kept at', keptIn), field('Doctor', doctorIn)]),
+      el('div', { className: 'field-grid' }, [field('Start date', startIn), field('End date (optional)', endIn)]),
+      el('div', { className: 'field-grid' }, [field('In stock (optional)', stockIn), field('Refill alert (days left)', refillIn)]),
+      field('Notes', notesIn),
+      activeRow,
+    ]),
     errorBox,
     el('div', { className: 'dialog__foot' }, [
       el('button', { className: 'btn btn--ghost', text: 'Cancel', attrs: { type: 'button' }, on: { click: () => dialog.close() } }),
@@ -205,11 +223,13 @@ export function openMedicineDialog(existing) {
     if (f.name) nameIn.value = f.name;
     if (f.generic_name) genericIn.value = f.generic_name;
     if (f.dosage) dosageIn.value = f.dosage;
-    if (f.form) formSel.value = f.form;
-    if (f.shape) shapeSel.value = f.shape;
-    else if (f.form === 'syrup') shapeSel.value = 'liquid';
-    else if (f.form === 'capsule') shapeSel.value = 'capsule';
+    const setRadio = (name, value) => { const i = form.querySelector(`input[name="${name}"][value="${value}"]`); if (i) i.checked = true; };
+    if (f.form) setRadio('form', f.form);
+    if (f.shape) setRadio('shape', f.shape);
+    else if (f.form === 'syrup') setRadio('shape', 'liquid');
+    else if (f.form === 'capsule') setRadio('shape', 'capsule');
     if (f.dose_qty) qtyIn.value = String(f.dose_qty);
+    updateUnit();
     if (f.meal) form.querySelector(`input[name="meal"][value="${f.meal}"]`).checked = true;
     if (f.color) form.querySelector(`input[name="color"][value="${f.color}"]`).checked = true;
     if (f.end_date) endIn.value = f.end_date;
@@ -296,7 +316,10 @@ export function openMedicineDialog(existing) {
     });
 
     quick = el('section', { className: 'quick-entry', attrs: { 'aria-label': 'Quick add' } }, [
-      el('label', { text: 'Quick add', attrs: { for: 'quick-text' } }),
+      el('div', { className: 'quick-entry__head' }, [
+        el('label', { text: 'Quick add', attrs: { for: 'quick-text' } }),
+        el('span', { className: 'tag tag--lime', text: 'Gemini AI' }),
+      ]),
       quickIn,
       el('div', { className: 'btn-row' }, [aiBtn, ruleBtn, scanBtn]),
       results,

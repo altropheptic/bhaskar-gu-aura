@@ -4,7 +4,7 @@
  * Each card shows the pill as it looks, when and how to take it, how many days
  * of stock are left, and offers Edit / Pause / "What is this for?" / Delete.
  */
-import { el, icon, pillIcon, formatTime, doseLabel, MEAL_LABEL, emptyState, openDialog, showBanner, toast, setLoading } from './ui.js';
+import { el, icon, pillIcon, formatTime, doseLabel, MEAL_LABEL, emptyState, openDialog, showBanner, toast, setLoading, tintClass } from './ui.js';
 import { state, currentProfile, saveMedicine, deleteMedicine } from './state.js';
 import { daysOfSupply, duplicateGenerics } from './schedule.js';
 import { openMedicineDialog } from './medForm.js';
@@ -53,27 +53,38 @@ function medCard(med) {
   });
 
   const showGeneric = med.generic_name && med.generic_name.toLowerCase() !== med.name.toLowerCase();
-  return el('article', { className: `card med${med.active ? '' : ' med--paused'}` }, [
-    medMedia(med, 'med-media--lg'),
-    el('div', {}, [
-      el('h3', { className: 'med__title', text: [med.name, med.dosage].filter(Boolean).join(' ') }),
-      el('p', { className: 'med__sub', text: [showGeneric && med.generic_name, doseLabel(med), MEAL_LABEL[med.meal], daysText(med.days)].filter(Boolean).join(' · ') }),
+  const stockPct = left === null ? 0 : Math.max(4, Math.min(100, Math.round((left / 30) * 100)));
+  const bar = el('span');
+  bar.style.width = `${stockPct}%`;
+  return el('article', { className: `card medcard ${tintClass(med.color)}${med.active ? '' : ' medcard--paused'}` }, [
+    el('div', { className: 'medcard__top' }, [
+      el('div', { className: 'medcard__art' }, [med.photo ? medMedia(med) : pillIcon(med)]),
+      el('div', {}, [
+        el('h3', { className: 'medcard__title', text: [med.name, med.dosage].filter(Boolean).join(' ') }),
+        el('p', { className: 'medcard__sub', text: [showGeneric && med.generic_name, doseLabel(med), MEAL_LABEL[med.meal]].filter(Boolean).join(' · ') }),
+      ]),
     ]),
-    el('div', { className: 'med__row' }, [
-      ...med.times.map((t, i) => el('span', { className: 'chip' }, [icon('clock'), med.slots?.[i] && med.slots[i] !== 'custom' ? `${doseSlotLabel(med.slots[i], t)} · ${formatTime(t)}` : formatTime(t)])),
-      !med.active && el('span', { className: 'chip chip--skipped', text: 'Paused' }),
-      med.end_date && el('span', { className: 'chip chip--meal', text: `Until ${new Date(`${med.end_date}T00:00`).toLocaleDateString([], { day: 'numeric', month: 'short' })}` }),
-    ]),
-    (med.kept_at || med.doctor) && el('div', { className: 'med__facts' }, [
-      med.kept_at && el('span', { className: 'tile__place' }, [icon('pin'), med.kept_at]),
-      med.doctor && el('span', { className: 'tile__place' }, [icon('rx'), med.doctor]),
-    ]),
-    left !== null && el('p', { className: `supply${low ? ' supply--low' : ''}`, text: `${med.stock} left · ${left} day${left === 1 ? '' : 's'}` }),
-    el('div', { className: 'med__actions' }, [
-      el('button', { className: 'btn btn--ghost btn--sm', text: 'Edit', attrs: { type: 'button' }, on: { click: () => openMedicineDialog(med) } }),
-      el('button', { className: 'btn btn--ghost btn--sm', attrs: { type: 'button' }, on: { click: () => explain(med) } }, [icon('book'), 'About']),
-      pauseBtn,
-      delBtn,
+    el('div', { className: 'medcard__body' }, [
+      el('div', { className: 'medcard__chips' }, [
+        ...med.times.map((t, i) => el('span', { className: 'chip' }, [icon('clock'), med.slots?.[i] && med.slots[i] !== 'custom' ? `${doseSlotLabel(med.slots[i], t)} · ${formatTime(t)}` : formatTime(t)])),
+        med.days.length < 7 && el('span', { className: 'chip chip--meal', text: daysText(med.days) }),
+        med.end_date && el('span', { className: 'chip chip--meal', text: `Until ${new Date(`${med.end_date}T00:00`).toLocaleDateString([], { day: 'numeric', month: 'short' })}` }),
+        !med.active && el('span', { className: 'chip chip--skipped', text: 'Paused' }),
+      ]),
+      (med.kept_at || med.doctor) && el('div', { className: 'medcard__facts' }, [
+        med.kept_at && el('span', { className: 'place' }, [icon('pin'), med.kept_at]),
+        med.doctor && el('span', { className: 'place' }, [icon('rx'), med.doctor]),
+      ]),
+      left !== null && el('div', { className: `stock${low ? ' stock--low' : ''}` }, [
+        el('div', { className: 'stock__row' }, [el('span', { text: `${med.stock} in stock` }), el('span', { text: `${left} day${left === 1 ? '' : 's'} left${low ? ' · refill' : ''}` })]),
+        el('div', { className: 'bar', attrs: { role: 'img', 'aria-label': `About ${left} days of stock left` } }, [bar]),
+      ]),
+      el('div', { className: 'medcard__actions' }, [
+        el('button', { className: 'btn btn--ghost btn--sm', text: 'Edit', attrs: { type: 'button' }, on: { click: () => openMedicineDialog(med) } }),
+        el('button', { className: 'btn btn--ghost btn--sm', attrs: { type: 'button' }, on: { click: () => explain(med) } }, [icon('book'), 'About']),
+        pauseBtn,
+        delBtn,
+      ]),
     ]),
   ]);
 }
@@ -81,11 +92,9 @@ function medCard(med) {
 /** @param {HTMLElement} panel */
 export function renderMedicines(panel) {
   const profile = currentProfile();
-  // On desktop the sidebar already has "Add medicine", so this copy is phone-only.
-  const addBtn = el('button', { className: 'btn btn--primary mobile-only', attrs: { type: 'button' }, on: { click: () => openMedicineDialog() } }, [icon('plus'), 'Add']);
+  // "Add medicine" lives in the sidebar (desktop) and the floating + button (phones).
   const head = el('div', { className: 'panel-head' }, [
     el('div', {}, [el('h2', { text: 'Medicines' }), el('p', { text: `${state.medicines.filter((m) => m.active).length} active · ${profile?.name ?? ''}` })]),
-    addBtn,
   ]);
   if (!state.medicines.length) {
     panel.replaceChildren(head, el('div', { className: 'card' }, [emptyState('No medicines yet.', { label: 'Add medicine', onClick: () => openMedicineDialog() })]));

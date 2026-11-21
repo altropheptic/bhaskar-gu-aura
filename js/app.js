@@ -3,7 +3,7 @@
  *
  * Boot order is chosen so an elder (or a judge) is never blocked:
  *   1. Static page content is already readable (no JS needed).
- *   2. Settings (theme, XL text) apply immediately.
+ *   2. Settings (XL text) apply immediately. The app is light-only by design.
  *   3. The store connects to Supabase silently; if that fails we fall back to
  *      this device and say so in a banner, and the app keeps working.
  *   4. "Try Instant Demo" works at any point, even fully offline.
@@ -12,7 +12,7 @@ import '@fontsource-variable/lexend/wght.css';
 import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 import '../css/styles.css';
 
-import { el, openDialog, showBanner, toast } from './ui.js';
+import { el, openDialog, showBanner, toast, avatarTint } from './ui.js';
 import { store } from './store.js';
 import { isSupabaseConfigured } from './supabaseClient.js';
 import { state, subscribe, loadAll, selectProfile, currentProfile } from './state.js';
@@ -25,6 +25,7 @@ import { openProfileDialog } from './profileDialog.js';
 import { openMedicineDialog } from './medForm.js';
 import { startReminders, enableNotifications, testChime } from './reminders.js';
 import { getSettings, setSettings, applySettings } from './settings.js';
+import { healthSummary } from './reminderHealth.js';
 
 const $ = (sel) => /** @type {HTMLElement} */ (document.querySelector(sel));
 const RENDERERS = { today: renderToday, medicines: renderMedicines, history: renderHistory, care: renderCare };
@@ -36,6 +37,16 @@ applySettings();
 function renderHeader() {
   const sel = /** @type {HTMLSelectElement} */ ($('#profile-select'));
   $('#demo-chip').hidden = store.mode !== 'demo';
+  const person = currentProfile();
+  const avatar = $('#avatar');
+  avatar.textContent = (person?.name ?? '?').trim().charAt(0).toUpperCase() || '?';
+  avatar.className = `avatar ${avatarTint(person?.name ?? '')}`;
+  // Bell badge: how many reminder channels need a fix (sound, voice, notifications, calendar).
+  const { ready, total } = healthSummary();
+  const badge = $('#health-badge');
+  badge.hidden = ready === total;
+  badge.textContent = String(total - ready);
+  $('#health-btn').setAttribute('aria-label', ready === total ? 'Reminder check: all ready' : `Reminder check: ${total - ready} to fix`);
   sel.replaceChildren(
     ...state.profiles.map((p) => el('option', { text: p.name, attrs: { value: p.id, selected: p.id === state.profileId } })),
     el('option', { text: '+ Add a person', attrs: { value: '__new' } }),
@@ -136,7 +147,6 @@ function openSettings() {
 
   body.replaceChildren(
     radios('Text size', 'size', [['normal', 'Normal'], ['xl', 'Extra large']], s.size),
-    radios('Theme', 'theme', [['system', 'Auto'], ['light', 'Light'], ['dark', 'Dark']], s.theme),
     el('fieldset', {}, [el('legend', { text: 'Reminders' }), el('div', { className: 'check-row' }, [el('label', {}, [voice, 'Speak aloud'])])]),
     el('div', { className: 'btn-row' }, [notifyBtn, soundBtn]),
     el('hr'),
@@ -153,6 +163,7 @@ $('#start-btn').addEventListener('click', startOwnList);
 $('#settings-btn').addEventListener('click', openSettings);
 $('#add-med-btn').addEventListener('click', () => openMedicineDialog());
 $('#fab-add').addEventListener('click', () => openMedicineDialog());
+$('#health-btn').addEventListener('click', () => showTab('care'));
 $('#demo-chip').addEventListener('click', () => exitDemo().catch((e) => showBanner('error', e.message)));
 document.querySelectorAll('.nav__item').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
 $('#profile-select').addEventListener('change', (e) => {

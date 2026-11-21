@@ -8,7 +8,7 @@
  * 90 KB cap as well.
  */
 import { PHOTO_MAX, PHOTO_RE } from './medSchema.js';
-import { el, pillIcon } from './ui.js';
+import { el, pillIcon, tintClass } from './ui.js';
 
 /**
  * @param {File} file
@@ -54,5 +54,5 @@ export function photoImg(dataUrl, alt, className = 'med-photo') {
  * @param {'' | 'med-media--lg' | 'med-media--xl'} [size]
  */
 export function medMedia(med, size = '') {
-  return el('span', { className: `med-media ${size}`.trim() }, [med.photo ? photoImg(med.photo, `Photo of ${med.name}`) : pillIcon(med)]);
+  return el('span', { className: `med-media ${tintClass(med.color)} ${size}`.trim() }, [med.photo ? photoImg(med.photo, `Photo of ${med.name}`) : pillIcon(med)]);
 }

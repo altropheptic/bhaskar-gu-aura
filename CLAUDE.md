@@ -21,6 +21,17 @@ When planning or reviewing work, say which criteria it serves; the README gets o
 
 **Design (owner-approved):** fonts Lexend (headings) + Atkinson Hyperlegible Next (body), self-hosted via Fontsource; palette "Neem & Marigold" (tokens in `css/styles.css`); custom duotone SVG icons in the sprite in `index.html`. Avoid AI-slop defaults (Inter/Poppins/etc., purple gradients, icon libraries, sparkle icons, emoji icons).
 
+**UI rules (owner, round 4, 21 Nov): light only, no dark mode.**
+- The design follows the owner's reference shots ("Medico"-style):
+  - an "Up next" hero (tags, huge time, glossy pill, ink "Taken" pill button)
+  - pastel "Later today" cards tinted by medicine colour (`.tint--*`)
+  - list rows with time chips
+  - a floating white capsule tab bar with a lime active circle and an ink "+" on phones; a floating white sidebar on desktop
+  - "Hello, name" with an avatar and a bell badge in the top bar
+  - chip-based form controls (segments, stepper, swatches, day circles, routine tiles)
+- Pills are glossy SVG renders (gradients in the sprite: `#pg-hl`, `#pg-shade`); keep caregiver.html's sprite in sync.
+- Tokens: ink primary buttons, lime `#c6ec62` for up-next/selected (as background only, never as text on white), marigold for due.
+
 **UI rules (owner, 21 Nov, round 2):** the app must look like an app, not a website. Landing (`#landing`) is short and static; once the demo or a list opens, `#landing` is hidden and the app shell (`#app`: sidebar ≥960px, bottom tab bar on phones, top bar with profile switch, demo chip and settings) takes over. Keep copy terse (labels, not paragraphs). 8px spacing scale (`--s1`…`--s8`), bordered cards only (no shadows, no nested cards), equal-width grids (`.grid-2`, 4-up `.stats`), card actions in `.card__foot`.
 
 ### Progress log (keep updated)
@@ -31,6 +42,7 @@ When planning or reviewing work, say which criteria it serves; the README gets o
   - Commits `a865530` (build) and `46cdd4e` (docs).
   - Verified in Chrome: demo, alarm, take/undo, quick fill, all tabs, one-tap mode, themes.
   - API checks: 401 / 400 / 404 responses as designed.
+- Round 4 (full UI revamp from the owner's reference shots, light only): committed locally. Verified desktop + 390px (no overflow), form submit, one-tap, alarm.
 - Round 3 (USPs from competitor research + Dribbble patterns), committed locally:
   - Routine-based reminders (`js/routine.js`, profile routine columns, medicine `slots`; doses re-time when the routine changes).
   - "Kept at" place cue, doctor name, medicine photo (data-URL thumbnail).

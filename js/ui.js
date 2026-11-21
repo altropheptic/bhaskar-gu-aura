@@ -182,3 +182,34 @@ export function doseLabel(med) {
   const plural = qty !== 1 && !['ml', 'drops'].includes(unit) ? 's' : '';
   return `${qty === 0.5 ? '½' : qty} ${unit}${plural}`;
 }
+
+/**
+ * Split a locale time into the number and the AM/PM part so the number can be
+ * shown huge and the period small ("10:25" + "AM"). 24-hour locales get no period.
+ * @param {string} hhmm
+ */
+export function timeParts(hhmm) {
+  const text = formatTime(hhmm);
+  const m = text.match(/^(\d{1,2}[:.]\d{2})\s*(.*)$/);
+  return m ? { main: m[1], period: m[2] } : { main: text, period: '' };
+}
+
+/** Element showing a time with a small AM/PM, e.g. <p class="next__time">10:25<small>AM</small></p>. */
+export function timeEl(tag, className, hhmm) {
+  const { main, period } = timeParts(hhmm);
+  return el(tag, { className }, [main, period && el('small', { text: period })]);
+}
+
+const TINTS = ['white', 'yellow', 'orange', 'pink', 'red', 'blue', 'green', 'brown'];
+/** CSS tint class for a medicine colour (drives pastel card backgrounds). */
+export function tintClass(color) {
+  return `tint--${TINTS.includes(color) ? color : 'white'}`;
+}
+
+/** Stable pastel for a person's avatar, derived from their name. */
+export function avatarTint(name = '') {
+  const options = ['pink', 'blue', 'yellow', 'green', 'orange', 'brown'];
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+  return `tint--${options[h % options.length]}`;
+}

@@ -42,7 +42,11 @@ The whole build was pair-programmed with **Claude Code** inside the hackathon's 
    - Claude Code analysed recent app-store complaints (reminders silently failing, paywalls), Android Doze limits, CHI/Digital Health studies on routine-based remembering, and NN/g guidance for older adults.
    - It also looked at top Dribbble medication-app shots: greeting, week strip, "Next up" hero, time rail.
    - This produced the routine-based reminders, place cue and reminder health check, and the redesigned Today screen.
-8. **Human in the loop.** The owner made every product decision (name, palette, fonts, features, no deploy without approval). Claude Code proposed, implemented and verified.
+8. **Full visual revamp from references.**
+   - The owner shared five Dribbble-style concepts. Claude Code extracted their shared patterns: next-dose hero, pastel "later" cards, list rows with time chips, floating capsule nav, and chip-based forms.
+   - It rebuilt the CSS and components in the Neem & Marigold palette (light only, at the owner's request) and drew glossy SVG pill renders.
+   - It verified desktop and phone layouts in Chrome.
+9. **Human in the loop.** The owner made every product decision (name, palette, fonts, features, no deploy without approval). Claude Code proposed, implemented and verified.
 
 ## Repo conventions that help AI agents
 

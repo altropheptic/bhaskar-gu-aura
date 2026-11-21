@@ -87,11 +87,12 @@ Sources:
 ## Presentation and Explanation
 
 - The first screen explains the product and offers a one-click demo. The problem, solution, features and safety sections are static HTML, readable without JavaScript.
-- Design system:
+- Design system, built from top medication-app design references:
+  - The next dose is the hero (huge time, glossy pill, one big "Taken" button), "Later today" sits in pastel cards tinted by each medicine's colour, and phones get a floating capsule tab bar.
   - Fonts: **Lexend** headings and **Atkinson Hyperlegible Next** body. The body font was built for low-vision readers.
-  - Colours: the **Neem & Marigold** palette, with every text pair checked against WCAG AA.
-  - Icons: a custom duotone icon set.
-  - Light and dark themes, plus a senior XL text mode.
+  - Colours: the light-only **Neem & Marigold** palette (ink actions, neem-lime selection, marigold for "due now"), with text pairs checked against WCAG AA.
+  - Art: glossy SVG pill renders in each medicine's real colour and shape, plus a custom duotone icon set.
+  - A senior XL text mode.
 - Docs: [Architecture](docs/ARCHITECTURE.md) · [AI workflow](docs/AI_WORKFLOW.md) · [Security](docs/SECURITY.md)
 
 ## Security

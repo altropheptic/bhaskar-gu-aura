@@ -57,11 +57,23 @@ export function renderHistory(panel) {
   }
 
   const stat = (value, label) => el('div', { className: 'stat' }, [el('p', { className: 'stat__value tabular', text: value }), el('p', { className: 'stat__label', text: label })]);
-  const stats = el('div', { className: 'stats' }, [
-    stat(week === null ? '–' : `${week}%`, '7-day adherence'),
-    stat(fortnight === null ? '–' : `${fortnight}%`, '14-day adherence'),
-    stat(`${days}`, 'Day streak'),
-    stat(`${missedWeek}`, 'Missed (7 days)'),
+  // Hero: one big ring for this week, then the supporting numbers.
+  const bigRing = el('div', { className: 'ring ring--lg', attrs: { role: 'img', 'aria-label': `${week ?? 0}% of doses taken this week` } }, [el('span', { className: 'tabular', text: week === null ? '–' : `${week}%` })]);
+  bigRing.style.setProperty('--p', String(week ?? 0));
+  const stats = el('div', { className: 'prog-hero' }, [
+    el('section', { className: 'card prog-ring' }, [
+      bigRing,
+      el('div', { className: 'stack' }, [
+        el('span', { className: 'tag tag--lime', text: 'This week' }),
+        el('h3', { text: 'Doses taken' }),
+        el('p', { text: encouragement(week, days) }),
+      ]),
+    ]),
+    el('div', { className: 'stats' }, [
+      stat(fortnight === null ? '–' : `${fortnight}%`, '14-day adherence'),
+      stat(`${days}`, 'Day streak'),
+      stat(`${missedWeek}`, 'Missed (7 days)'),
+    ]),
   ]);
 
   const badgeDefs = [[3, '3-day streak'], [7, 'Perfect week'], [14, 'Two strong weeks'], [30, 'Month of care']];
@@ -107,7 +119,6 @@ export function renderHistory(panel) {
   panel.replaceChildren(
     head,
     stats,
-    el('p', { className: 'encourage', text: encouragement(week, days) }),
     el('section', { className: 'card' }, [el('h3', { text: 'Day by day' }), el('div', { className: 'grid-wrap' }, [table]), legend]),
     el('div', { className: 'grid-2' }, [
       el('section', { className: 'card' }, [el('h3', { text: 'By medicine' }), perMed]),

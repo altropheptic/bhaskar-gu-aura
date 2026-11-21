@@ -1,5 +1,5 @@
 /**
- * Per-device preferences: theme, senior XL text, voice on/off.
+ * Per-device preferences: senior XL text and voice on/off (the app is light-only).
  *
  * Why localStorage: these are conveniences for the person holding this phone,
  * not health data, so they never need to leave the device.
@@ -24,11 +24,10 @@ export function setSettings(patch) {
   return next;
 }
 
-/** Reflect settings on <html> so CSS tokens switch instantly. */
+/** Reflect settings on <html> so CSS tokens switch instantly. The app is light-only by design. */
 export function applySettings(s = getSettings()) {
   const root = document.documentElement;
-  if (s.theme === 'system') root.removeAttribute('data-theme');
-  else root.dataset.theme = s.theme;
+  root.removeAttribute('data-theme');
   if (s.size === 'xl') root.dataset.size = 'xl';
   else root.removeAttribute('data-size');
 }
