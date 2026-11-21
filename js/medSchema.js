@@ -15,6 +15,8 @@ export const ROUTINE_SLOTS = ['wake', 'breakfast', 'lunch', 'dinner', 'bed'];
 /** Small medicine photo stored as a data URL (JPEG/PNG/WebP, base64). */
 export const PHOTO_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
 export const PHOTO_MAX = 90000;
+/** Bundled demo photos (same-origin static files in public/demo). */
+export const DEMO_PHOTO_RE = /^\/demo\/[a-z0-9-]+\.jpg$/;
 
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -90,7 +92,7 @@ export function validateMedicine(m) {
   if ((m.notes ?? '').length > 200) errors.push('Notes must be under 200 letters.');
   if ((m.kept_at ?? '').length > 60) errors.push('"Kept at" must be under 60 letters.');
   if ((m.doctor ?? '').length > 60) errors.push("Doctor's name must be under 60 letters.");
-  if (m.photo && (m.photo.length > PHOTO_MAX || !PHOTO_RE.test(m.photo))) errors.push('That photo could not be used. Try another one.');
+  if (m.photo && !DEMO_PHOTO_RE.test(m.photo) && (m.photo.length > PHOTO_MAX || !PHOTO_RE.test(m.photo))) errors.push('That photo could not be used. Try another one.');
   if (m.slots && (!Array.isArray(m.slots) || m.slots.length !== m.times?.length || m.slots.some((s) => s !== 'custom' && !ROUTINE_SLOTS.includes(s)))) {
     errors.push('Times could not be matched to the routine.');
   }

@@ -12,7 +12,7 @@ import '@fontsource-variable/lexend/wght.css';
 import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 import '../css/styles.css';
 
-import { el, openDialog, showBanner, toast, avatarTint } from './ui.js';
+import { el, icon, openDialog, showBanner, toast, avatarTint } from './ui.js';
 import { store } from './store.js';
 import { isSupabaseConfigured } from './supabaseClient.js';
 import { state, subscribe, loadAll, selectProfile, currentProfile } from './state.js';
@@ -85,7 +85,27 @@ function showWelcome() {
   $('#landing').hidden = false;
   $('#app').hidden = true;
   document.body.classList.remove('in-app');
+  // Someone who already has a list goes straight back to it from the home page.
+  $('#start-btn').textContent = state.profiles.length && store.mode !== 'demo' ? 'Open my list' : 'Start my own list';
   renderHeader();
+  window.scrollTo(0, 0);
+}
+
+/**
+ * "Log out": leave the app and return to the home page. There is no password to
+ * sign out of (each browser has a private, invisible account), so this ends the
+ * demo if one is running and keeps the person's own list saved for next time.
+ */
+async function logOut() {
+  document.querySelectorAll('dialog[open]').forEach((d) => d.close());
+  const wasDemo = store.mode === 'demo';
+  if (wasDemo) {
+    store.exitDemo();
+    state.profileId = null;
+    await loadAll().catch(() => {});
+  }
+  showWelcome();
+  toast(wasDemo ? 'Logged out of the demo' : 'Logged out · your list is saved for next time');
 }
 
 subscribe(render);
@@ -112,6 +132,7 @@ async function exitDemo() {
 
 function startOwnList() {
   if (store.mode === 'demo') store.exitDemo();
+  if (state.profiles.length) { showTab('today'); showApp(); return; }
   openProfileDialog(null, {
     onSaved: () => {
       showTab('today');
@@ -152,7 +173,10 @@ function openSettings() {
     el('hr'),
     el('p', { className: 'muted', text: modeText }),
     currentProfile() && el('button', { className: 'btn btn--ghost', text: `Edit ${currentProfile().name}'s details`, attrs: { type: 'button' }, on: { click: () => { dialog.close(); openProfileDialog(currentProfile()); } } }),
-    store.mode === 'demo' && el('button', { className: 'btn btn--primary', text: 'Exit demo', attrs: { type: 'button' }, on: { click: () => { dialog.close(); exitDemo(); } } }),
+    el('div', { className: 'btn-row' }, [
+      store.mode === 'demo' && el('button', { className: 'btn btn--outline', text: 'Exit demo', attrs: { type: 'button' }, on: { click: () => { dialog.close(); exitDemo(); } } }),
+      el('button', { className: 'btn btn--primary', attrs: { type: 'button' }, on: { click: () => logOut() } }, [icon('logout'), 'Log out']),
+    ]),
   );
 }
 
@@ -163,6 +187,7 @@ $('#start-btn').addEventListener('click', startOwnList);
 $('#settings-btn').addEventListener('click', openSettings);
 $('#add-med-btn').addEventListener('click', () => openMedicineDialog());
 $('#fab-add').addEventListener('click', () => openMedicineDialog());
+$('#logout-btn').addEventListener('click', () => logOut());
 $('#health-btn').addEventListener('click', () => showTab('care'));
 $('#demo-chip').addEventListener('click', () => exitDemo().catch((e) => showBanner('error', e.message)));
 document.querySelectorAll('.nav__item').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));

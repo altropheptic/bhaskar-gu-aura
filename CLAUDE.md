@@ -42,6 +42,7 @@ When planning or reviewing work, say which criteria it serves; the README gets o
   - Commits `a865530` (build) and `46cdd4e` (docs).
   - Verified in Chrome: demo, alarm, take/undo, quick fill, all tabs, one-tap mode, themes.
   - API checks: 401 / 400 / 404 responses as designed.
+- Round 5: demo expanded to 4 people / 18 medicines / 30 days, with 14 real Wikimedia Commons photos in `public/demo/` (credits file; `DEMO_PHOTO_RE` allows `/demo/*.jpg`); Log out button (sidebar + Settings) returns to the landing, keeps the list.
 - Round 4 (full UI revamp from the owner's reference shots, light only): committed locally. Verified desktop + 390px (no overflow), form submit, one-tap, alarm.
 - Round 3 (USPs from competitor research + Dribbble patterns), committed locally:
   - Routine-based reminders (`js/routine.js`, profile routine columns, medicine `slots`; doses re-time when the routine changes).

@@ -8,7 +8,7 @@ PromptWars × Code1 · PS02 *MediTrack: Smart Medicine Reminder* (Healthcare)
 ## Try it in 10 seconds
 
 1. Open the live app. There is no sign-up, login or password.
-2. Click **Try Instant Demo**. Two sample elders (Dadi and Nanaji) appear with eight medicines and two weeks of history.
+2. Click **Try Instant Demo**. Four family members (Dadi, Nanaji, Papa, Maa) appear, with 18 medicines (most with real photos), routines, doctors and a month of history.
 3. Wait about a minute. **An alarm rings for Dadi**: it chimes, speaks the reminder and shows the pill's colour and shape. Tap **I took it**.
 4. Explore the tabs:
    - **Medicines**: add one by typing `Metformin 500mg 1-0-1 after food 30 days`, or photograph a prescription.
@@ -16,7 +16,9 @@ PromptWars × Code1 · PS02 *MediTrack: Smart Medicine Reminder* (Healthcare)
    - **Family & safety**: WhatsApp update, caregiver link, emergency card, phone-calendar alarms.
 5. Try **One-tap big mode** on the Today screen. It shows only the next dose and one huge button.
 
-To start your own list, click **Start my own list**. Your data is private to your browser.
+To start your own list, click **Start my own list**. Your data is private to your browser. **Log out** (sidebar, or Settings on phones) returns to the home page and keeps your list.
+
+Demo medicine photos are real, freely licensed photos from Wikimedia Commons; see [public/demo/CREDITS.md](public/demo/CREDITS.md).
 
 ---
 

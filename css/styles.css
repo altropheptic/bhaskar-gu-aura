@@ -377,7 +377,7 @@ body.in-app { overflow-x: hidden; }
 
 /* Phones: floating capsule tab bar + separate add button */
 .sidebar { position: fixed; left: var(--s4); right: var(--s4); bottom: calc(var(--s4) + env(safe-area-inset-bottom)); z-index: 40; display: flex; align-items: center; gap: var(--s3); }
-.sidebar__brand, .sidebar__cta { display: none; }
+.sidebar__brand, .sidebar__cta, .sidebar__logout { display: none; }
 @media (min-width: 960px) { .mobile-only { display: none !important; } }
 .nav {
   flex: 1; min-width: 0; height: 68px; padding: 0 var(--s2); border-radius: 999px;
@@ -414,6 +414,8 @@ body.in-app { overflow-x: hidden; }
   }
   .sidebar__brand { display: flex; padding-inline: var(--s3); min-height: 44px; }
   .sidebar__cta { display: flex; margin-top: auto; min-height: 56px; }
+  .sidebar__logout { display: flex; margin-top: calc(-1 * var(--s5)); color: var(--muted); }
+  .sidebar__logout:hover { color: var(--ink); }
   .nav__fab { display: none; }
   .nav { flex: none; height: auto; padding: 0; flex-direction: column; align-items: stretch; background: transparent; box-shadow: none; border-radius: 0; }
   .nav__item { justify-content: flex-start; gap: var(--s3); padding: 0 var(--s4); font-size: 1rem; color: var(--ink); }

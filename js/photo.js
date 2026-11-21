@@ -7,7 +7,7 @@
  * (`img-src data:` is already allowed). The database enforces the format and a
  * 90 KB cap as well.
  */
-import { PHOTO_MAX, PHOTO_RE } from './medSchema.js';
+import { PHOTO_MAX, PHOTO_RE, DEMO_PHOTO_RE } from './medSchema.js';
 import { el, pillIcon, tintClass } from './ui.js';
 
 /**
@@ -40,7 +40,7 @@ export async function makeThumbnail(file) {
  */
 export function photoImg(dataUrl, alt, className = 'med-photo') {
   const img = document.createElement('img');
-  if (PHOTO_RE.test(dataUrl)) img.src = dataUrl;
+  if (PHOTO_RE.test(dataUrl) || DEMO_PHOTO_RE.test(dataUrl)) img.src = dataUrl;
   img.alt = alt;
   img.className = className;
   img.decoding = 'async';
