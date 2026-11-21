@@ -768,11 +768,11 @@ body.in-app { overflow-x: hidden; }
 }
 
 /* ---------- Device mock with real screenshots (landing) ---------- */
-.device { position: relative; margin: 0; width: 100%; max-width: 300px; aspect-ratio: 951 / 2072; container-type: inline-size; filter: drop-shadow(0 28px 36px rgb(27 36 29 / 0.18)); --shot-bg: #edf1e7; }
-.device__frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.device__screen { position: absolute; left: 4.206%; top: 1.931%; width: 90.957%; height: 96.139%; border-radius: 17.3% / 7.53%; overflow: hidden; background: var(--shot-bg); }
-.device__screen img { position: absolute; left: 0; bottom: 0; width: 100%; height: auto; display: block; }
-.device__status { position: absolute; inset: 0 0 auto; height: 5.4%; display: flex; align-items: center; justify-content: space-between; padding: 0 11%; font-family: var(--font-head); font-weight: 650; font-size: 4.2cqw; color: var(--ink); }
+.device { position: relative; margin: 0; width: 100%; max-width: 300px; aspect-ratio: 1410 / 2968; container-type: inline-size; filter: drop-shadow(0 28px 36px rgb(27 36 29 / 0.18)); --shot-bg: #edf1e7; }
+.device__frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.device__screen { position: absolute; left: 4.184%; top: 2.022%; width: 90.78%; height: 96.226%; border-radius: 14.06% / 6.3%; overflow: hidden; background: var(--shot-bg); }
+.device__screen img { position: absolute; left: 0; top: 5.6%; width: 100%; height: auto; display: block; }
+.device__status { position: absolute; inset: 0 0 auto; height: 5.6%; display: flex; align-items: center; justify-content: space-between; padding: 0 11%; font-family: var(--font-head); font-weight: 650; font-size: 4.2cqw; color: var(--ink); }
 .device__icons { display: flex; gap: 1.2cqw; align-items: flex-end; }
 .device__icons i { display: block; width: 1.3cqw; background: currentColor; border-radius: 1px; }
 .device__icons i:nth-child(1) { height: 1.6cqw; }
