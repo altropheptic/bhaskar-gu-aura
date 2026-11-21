@@ -82,7 +82,7 @@ function showApp() {
 }
 
 function showWelcome() {
-  $('#demo-btn').textContent = 'Open my list';
+  document.querySelectorAll('[data-open-app]').forEach((b) => { b.textContent = 'Open my list'; });
   $('#landing').hidden = false;
   $('#app').hidden = true;
   document.body.classList.remove('in-app');
@@ -173,7 +173,7 @@ function openSettings() {
 
 /* ---------------- wiring ---------------- */
 
-$('#demo-btn').addEventListener('click', (e) => openApp(/** @type {HTMLButtonElement} */ (e.currentTarget)).catch((err) => showBanner('error', err.message || 'Could not open. Please try again.')));
+document.querySelectorAll('[data-open-app]').forEach((btn) => btn.addEventListener('click', (e) => openApp(/** @type {HTMLButtonElement} */ (e.currentTarget)).catch((err) => showBanner('error', err.message || 'Could not open. Please try again.'))));
 $('#settings-btn').addEventListener('click', openSettings);
 $('#add-med-btn').addEventListener('click', () => openMedicineDialog());
 $('#fab-add').addEventListener('click', () => openMedicineDialog());
@@ -194,7 +194,7 @@ $('#profile-select').addEventListener('change', (e) => {
 
 // A returning visitor sees "Open my list" on the home page.
 ready.then(() => store.listProfiles()).then((people) => {
-  if (people.length) $('#demo-btn').textContent = 'Open my list';
+  if (people.length) document.querySelectorAll('[data-open-app]').forEach((b) => { b.textContent = 'Open my list'; });
 }).catch(() => {});
 
 // Installable / offline: register the service worker in production builds only

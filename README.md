@@ -43,12 +43,12 @@ We researched why elders miss doses before writing code, then mapped each cause 
 
 | Research finding | Dawai Dost response |
 |---|---|
-| Forgetting causes 39–59% of non-adherence in older adults | Alarm with chime, spoken reminder, notification, snooze; `.ics` export so the phone calendar rings even when the browser is closed |
-| 40–50% of elders take 5+ medicines (polypharmacy) | Timeline grouped by time slot, pill icons, food timing on every dose |
+| Forgetting is the top reason older adults miss doses ([study](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6981635/)) | Alarm with chime, spoken reminder, notification, snooze; `.ics` export so the phone calendar rings even when the browser is closed |
+| 49% of older adults in India take 5+ medicines ([meta-analysis](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8173298/)) | Timeline grouped by time slot, pill icons, food timing on every dose |
 | Double dosing ("did I already take it?") | "Taken at 8:04" with Undo, plus a DB-level unique constraint |
 | Same molecule under two brand names | Duplicate-generic warning |
 | Running out of medicine | Stock counts down with each dose and warns days ahead |
-| Adherence is 77% with a caregiver vs 44% without (Indian cohort) | Caregiver link, WhatsApp summary, several elders per phone |
+| About half of older adults on multidrug regimens are non-adherent; family help is a key support ([study](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8969957/)) | Caregiver link, WhatsApp summary, several elders per phone |
 | Older adults abandon complex apps (menus, scrolling, jargon) | Large type, 48–56px targets, senior XL mode, linear forms, plain words |
 | iPhone web push is unreliable | We don't depend on it: in-app alarms plus native calendar alarms, and we document the limit honestly |
 

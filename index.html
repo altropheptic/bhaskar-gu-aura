@@ -6,7 +6,7 @@
     <title>Dawai Dost · Simple medicine reminders for elders and families</title>
     <meta
       name="description"
-      content="Dawai Dost is a free, no-login medicine reminder for elderly people and their families. Organise every medicine, get spoken reminders in Hindi or English, prevent double doses, track adherence and share a live view with caregivers."
+      content="Dawai Dost is a free, no-sign-up medicine reminder for elders and their families. Reminders follow meal times, speak in Hindi or English, show where each medicine is kept, prevent double doses and keep family informed."
     />
     <meta name="theme-color" content="#EEF1EC" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -59,6 +59,20 @@
       <symbol id="i-chart" viewBox="0 0 24 24"><rect x="4" y="12" width="4" height="8" rx="1.5" fill="currentColor" fill-opacity=".2" stroke="currentColor" stroke-width="2"/><rect x="10" y="7" width="4" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16" y="3.5" width="4" height="16.5" rx="1.5" fill="currentColor" fill-opacity=".2" stroke="currentColor" stroke-width="2"/></symbol>
       <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
       <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="7" r="2.3" fill="currentColor" fill-opacity=".2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="17" r="2.3" fill="currentColor" fill-opacity=".2" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="device-frame" viewBox="0 0 951 2072">
+        <defs>
+          <linearGradient id="dv-rim" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8d93a8"/><stop offset=".08" stop-color="#e6e9f2"/><stop offset=".5" stop-color="#c9cedd"/><stop offset=".92" stop-color="#eef0f6"/><stop offset="1" stop-color="#868ca1"/></linearGradient>
+          <radialGradient id="dv-lens" cx=".4" cy=".35" r=".6"><stop offset="0" stop-color="#4a5070"/><stop offset=".55" stop-color="#151827"/><stop offset="1" stop-color="#050507"/></radialGradient>
+        </defs>
+        <rect x="943" y="565" width="8" height="150" rx="3" fill="#a7adbf"/>
+        <rect x="943" y="815" width="8" height="265" rx="3" fill="#a7adbf"/>
+        <path fill-rule="evenodd" fill="url(#dv-rim)" stroke="#6d7287" stroke-width="2" d="M194 2H751A192 192 0 0 1 943 194V1878A192 192 0 0 1 751 2070H194A192 192 0 0 1 2 1878V194A192 192 0 0 1 194 2ZM196 14H749A182 182 0 0 1 931 196V1876A182 182 0 0 1 749 2058H196A182 182 0 0 1 14 1876V196A182 182 0 0 1 196 14Z"/>
+        <path fill-rule="evenodd" fill="#e3e6ef" d="M196 14H749A182 182 0 0 1 931 196V1876A182 182 0 0 1 749 2058H196A182 182 0 0 1 14 1876V196A182 182 0 0 1 196 14ZM196 20H749A176 176 0 0 1 925 196V1876A176 176 0 0 1 749 2052H196A176 176 0 0 1 20 1876V196A176 176 0 0 1 196 20Z"/>
+        <path fill-rule="evenodd" fill="#050506" d="M196 20H749A176 176 0 0 1 925 196V1876A176 176 0 0 1 749 2052H196A176 176 0 0 1 20 1876V196A176 176 0 0 1 196 20ZM190 40H755A150 150 0 0 1 905 190V1882A150 150 0 0 1 755 2032H190A150 150 0 0 1 40 1882V190A150 150 0 0 1 190 40Z"/>
+        <circle cx="471" cy="110" r="31" fill="#030304"/>
+        <circle cx="471" cy="110" r="15" fill="url(#dv-lens)"/>
+        <circle cx="466" cy="104" r="4" fill="#8b93c4" opacity=".7"/>
+      </symbol>
       <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 4H6.5A2.5 2.5 0 0 0 4 6.5v11A2.5 2.5 0 0 0 6.5 20H10" fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M14 8l4 4-4 4M18 12H9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
       <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="8" y="8" width="8" height="8" rx="2" fill="currentColor" fill-opacity=".2"/></symbol>
     </svg>
@@ -82,83 +96,155 @@
             <svg class="pill pill--blue fl fl--4"><use href="#i-pill-capsule" /></svg>
           </div>
           <div class="welcome__text">
-            <span class="tag tag--lime">For elders &amp; their families</span>
-            <h1 id="welcome-title">Your doses, perfectly <em>timed.</em></h1>
-            <p class="lead">Spoken reminders in Hindi or English, one-tap logging and a family view. No sign-up.</p>
+            <span class="tag tag--lime">Medicine reminders for elders · <span lang="hi">हिंदी</span> &amp; English</span>
+            <h1 id="welcome-title">Every dose, at the right <em>meal.</em></h1>
+            <p class="lead">No more guessing "did I take it?". Reminders follow Dadi's day, not the clock: they say the medicine's name aloud in Hindi or English, show where the strip is kept, and let the family see what was taken.</p>
             <div class="welcome__actions">
-              <button type="button" class="btn btn--primary btn--xl" id="demo-btn">Get started</button>
+              <button type="button" class="btn btn--primary btn--xl" id="demo-btn" data-open-app>Get started</button>
+              <a class="btn btn--outline btn--xl" href="#solution">How it works</a>
             </div>
+            <p class="welcome__note">Free · No email or password · No ads · Works in any phone browser</p>
           </div>
-          <figure class="welcome__preview" aria-label="Example of the Today screen">
-            <div class="phone">
-              <div class="phone__head">
-                <span class="avatar tint--pink" aria-hidden="true">D</span>
-                <span class="phone__hello"><span>Hello,</span><strong>Dadi</strong></span>
-              </div>
-              <div class="next tint--pink">
-                <div class="next__tags"><span class="tag tag--lime">Up next</span><span class="tag tag--ghost">in 45 min</span></div>
-                <div class="next__info"><p class="next__name">Amlodipine 5 mg</p><p class="next__how">1 tablet · after breakfast</p></div>
-                <div class="next__art"><svg class="pill pill--pink" aria-hidden="true"><use href="#i-pill-oval" /></svg></div>
-                <p class="next__time">8:00<small>AM</small></p>
-                <div class="next__actions">
-                  <span class="round-btn" aria-hidden="true"><svg><use href="#i-speaker" /></svg></span>
-                  <span class="btn-taken"><svg aria-hidden="true"><use href="#i-check" /></svg> Taken</span>
-                </div>
-              </div>
-              <div class="later-grid later-grid--2">
-                <div class="later tint--yellow">
-                  <div class="later__art"><svg class="pill pill--yellow" aria-hidden="true"><use href="#i-pill-capsule" /></svg></div>
-                  <p class="later__time">2:00<small>PM</small></p>
-                  <p class="later__name">Vitamin D3</p>
-                </div>
-                <div class="later tint--blue">
-                  <div class="later__art"><svg class="pill pill--blue" aria-hidden="true"><use href="#i-pill-round" /></svg></div>
-                  <p class="later__time">9:00<small>PM</small></p>
-                  <p class="later__name">Atorvastatin</p>
-                </div>
-              </div>
-            </div>
-          </figure>
+          <div class="welcome__preview">
+            <figure class="device device--hero"><div class="device__screen"><span class="device__status" aria-hidden="true"><span>9:41</span><span class="device__icons"><i></i><i></i><i></i></span></span><img src="/shots/today.webp" alt="Dawai Dost Today screen: Maa's iron tablet is due now, with a big Taken button" width="389" height="844" fetchpriority="high" decoding="async" /></div><svg class="device__frame" aria-hidden="true"><use href="#device-frame" /></svg></figure>
+          </div>
         </section>
 
         <noscript><div class="container noscript"><p>Dawai Dost needs JavaScript for reminders and tracking.</p></div></noscript>
 
         <section class="info container" id="problem" aria-labelledby="problem-title">
-          <h2 id="problem-title">The problem</h2>
-          <p class="info__lede">Elders often take five or more medicines a day. Forgetting and look-alike pills cause missed and double doses.</p>
-          <ul class="facts">
-            <li class="tint--yellow"><strong>39–59%</strong><span>of missed doses are forgetting</span></li>
-            <li class="tint--pink"><strong>40–50%</strong><span>of elders take 5+ medicines</span></li>
-            <li class="tint--green"><strong>77% vs 44%</strong><span>adherence with vs without a caregiver</span></li>
+          <h2 id="problem-title">Sound familiar?</h2>
+          <ul class="voices">
+            <li class="tint--yellow"><blockquote>"Did I take the BP tablet this morning, or was that yesterday?"</blockquote><span>Before breakfast, every day</span></li>
+            <li class="tint--pink"><blockquote>"The white one is for sugar. Or is that the thyroid one?"</blockquote><span>Five strips, one steel dabba</span></li>
+            <li class="tint--blue"><blockquote>"Papa, did you take your medicines? Papa?"</blockquote><span>A son, calling from another city</span></li>
           </ul>
+          <p class="info__lede">Half of older adults on several medicines don't take them as prescribed, and the most common reason is simply forgetting. Dawai Dost is built for exactly these moments.</p>
+          <p class="sources">Sources: <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8969957/" rel="noopener" target="_blank">multidrug regimens study</a> · <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6981635/" rel="noopener" target="_blank">polymedicated elderly study</a> · <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8173298/" rel="noopener" target="_blank">49% of older Indians take 5+ medicines</a></p>
+        </section>
+
+        <section class="info container" id="tour" aria-labelledby="tour-title">
+          <h2 id="tour-title">See it in action</h2>
+          <div class="show">
+            <article class="show__row">
+              <div class="show__art tint--yellow"><figure class="device"><div class="device__screen"><span class="device__status" aria-hidden="true"><span>9:41</span><span class="device__icons"><i></i><i></i><i></i></span></span><img src="/shots/onetap.webp" alt="Big one-tap mode: the medicine, where it is kept, and one huge I took it button" width="389" height="844" loading="lazy" decoding="async" /></div><svg class="device__frame" aria-hidden="true"><use href="#device-frame" /></svg></figure></div>
+              <div class="show__text">
+                <span class="tag tag--lime">When a dose is due</span>
+                <h3>One button. Big enough for shaky hands.</h3>
+                <p>Big mode fills the screen with what to take, where it is kept and one huge <strong>I took it · ले ली</strong> button. It says the name aloud too, in Hindi or English.</p>
+              </div>
+            </article>
+            <article class="show__row">
+              <div class="show__art tint--pink"><figure class="device"><div class="device__screen"><span class="device__status" aria-hidden="true"><span>9:41</span><span class="device__icons"><i></i><i></i><i></i></span></span><img src="/shots/medicines.webp" alt="Medicines screen with a photo of each strip, meal times, where it is kept, the doctor and stock left" width="389" height="844" loading="lazy" decoding="async" /></div><svg class="device__frame" aria-hidden="true"><use href="#device-frame" /></svg></figure></div>
+              <div class="show__text">
+                <span class="tag tag--lime">Every medicine</span>
+                <h3>The strip's photo, and where it lives.</h3>
+                <p>Snap a strip once. Each medicine shows its photo, its meal slot, where it is kept, the doctor who prescribed it and how many days of stock are left.</p>
+              </div>
+            </article>
+            <article class="show__row">
+              <div class="show__art tint--green"><figure class="device" style="--shot-bg:#91968f"><div class="device__screen"><span class="device__status" aria-hidden="true"><span>9:41</span><span class="device__icons"><i></i><i></i><i></i></span></span><img src="/shots/alerts.webp" alt="Alerts sheet listing a dose due now with Took it and Skip, and a reminder check to fix" width="389" height="844" loading="lazy" decoding="async" /></div><svg class="device__frame" aria-hidden="true"><use href="#device-frame" /></svg></figure></div>
+              <div class="show__text">
+                <span class="tag tag--lime">Nothing slips past</span>
+                <h3>Dismissed the alarm? The bell remembers.</h3>
+                <p>Doses due now, yesterday's misses and medicines running low collect in one place, with Took it right there.</p>
+              </div>
+            </article>
+            <article class="show__row">
+              <div class="show__art tint--blue"><figure class="device"><div class="device__screen"><span class="device__status" aria-hidden="true"><span>9:41</span><span class="device__icons"><i></i><i></i><i></i></span></span><img src="/shots/progress.webp" alt="Progress screen with an 89 percent ring, streak, missed doses and a day-by-day grid" width="389" height="844" loading="lazy" decoding="async" /></div><svg class="device__frame" aria-hidden="true"><use href="#device-frame" /></svg></figure></div>
+              <div class="show__text">
+                <span class="tag tag--lime">For the family and the doctor</span>
+                <h3>A month of doses at a glance.</h3>
+                <p>See the streak and every missed dose, share today on WhatsApp, and print a clean report for the next check-up.</p>
+              </div>
+            </article>
+          </div>
         </section>
 
         <section class="info container" id="solution" aria-labelledby="solution-title">
           <h2 id="solution-title">How it works</h2>
           <ol class="steps">
-            <li><h3>Add</h3><p>Type <code>1-0-1 after food</code> or snap the prescription.</p></li>
-            <li><h3>Remind</h3><p>It rings at their meal times and speaks in Hindi or English.</p></li>
-            <li><h3>Share</h3><p>Family sees what was taken or missed.</p></li>
+            <li><h3>Add a medicine</h3><p>Type it the way the doctor wrote it, like <code>Metformin 500 1-0-1 after food</code>, or photograph the prescription and let Gemini read it.</p></li>
+            <li><h3>Get reminded</h3><p>At breakfast, lunch or bedtime it chimes and says the medicine's name aloud. One big <strong>Taken</strong> button logs it.</p></li>
+            <li><h3>Keep family in the loop</h3><p>Send a WhatsApp update or a private, read-only link that shows what was taken and what was missed today.</p></li>
           </ol>
         </section>
 
-        <section class="info container" id="features" aria-labelledby="features-title">
-          <h2 id="features-title">Key features</h2>
-          <ul class="feature-grid">
-            <li>Routine-based reminders</li>
-            <li>One-tap big mode</li>
-            <li>Double-dose guard</li>
-            <li>Reminder health check</li>
-            <li>AI prescription reader</li>
-            <li>Refill warnings</li>
-            <li>Doctor report</li>
-            <li>Emergency card</li>
+        <section class="info container" id="different" aria-labelledby="different-title">
+          <h2 id="different-title">What other reminder apps miss</h2>
+          <ul class="usps">
+            <li class="tint--green">
+              <span class="usp__vs">Most apps: fixed clock times</span>
+              <h3>Follows their day</h3>
+              <p>Doses are tied to wake-up, meals and bedtime. If dinner moves to 9:30, every evening dose moves with it.</p>
+            </li>
+            <li class="tint--yellow">
+              <span class="usp__vs">Most apps: a name on a screen</span>
+              <h3>Says what and where</h3>
+              <p>Each reminder shows the pill's colour, shape or photo, and where it is kept, like "blue box, dining table".</p>
+            </li>
+            <li class="tint--pink">
+              <span class="usp__vs">Most apps: built for one market</span>
+              <h3>Made for Indian homes</h3>
+              <p>Understands 1-0-1 shorthand, speaks Hindi, shares on WhatsApp, and spots Dolo and Crocin as the same medicine.</p>
+            </li>
+            <li class="tint--blue">
+              <span class="usp__vs">Most apps: assume the alarm works</span>
+              <h3>Checks it will ring</h3>
+              <p>A reminder check tests sound, voice and notifications, and points to the calendar backup when a phone may stay silent.</p>
+            </li>
           </ul>
+        </section>
+
+        <section class="info container" id="features" aria-labelledby="features-title">
+          <h2 id="features-title">Everything in one place</h2>
+          <ul class="feature-grid">
+            <li><strong>Spoken reminders</strong><span>Hindi or English, with a chime and snooze</span></li>
+            <li><strong>Big one-tap mode</strong><span>Huge text and buttons for shaky hands and weak eyes</span></li>
+            <li><strong>Double-dose guard</strong><span>Each dose can be logged once, with an Undo</span></li>
+            <li><strong>Duplicate warning</strong><span>Flags two brands of the same medicine, like Dolo and Crocin</span></li>
+            <li><strong>Prescription reader</strong><span>Gemini reads a typed or photographed prescription</span></li>
+            <li><strong>Refill alerts</strong><span>Counts tablets and warns days before they run out</span></li>
+            <li><strong>Doctor report</strong><span>A printable month of doses for the next check-up</span></li>
+            <li><strong>Emergency card</strong><span>Blood group, allergies, medicines and a contact to call</span></li>
+          </ul>
+        </section>
+
+        <section class="info container" id="faq" aria-labelledby="faq-title">
+          <h2 id="faq-title">Questions families ask</h2>
+          <div class="faq">
+            <details>
+              <summary>Do I need to create an account?</summary>
+              <p>No. Each browser gets its own private account automatically, with no email or password. The app opens with a sample family so you can see how everything works, and you can edit it or add your own people.</p>
+            </details>
+            <details>
+              <summary>Will it ring if the browser is closed?</summary>
+              <p>Browsers can't promise that, so Dawai Dost also exports every dose to the phone's calendar. Calendar alerts ring even when the app is closed.</p>
+            </details>
+            <details>
+              <summary>Who can see the medicines?</summary>
+              <p>Only this browser. Database rules stop anyone else from reading the list. Family links are read-only, show only today, and can be switched off at any time.</p>
+            </details>
+            <details>
+              <summary>Does it work without internet?</summary>
+              <p>Opening the app and saving need a connection. If the voice or the prescription reader can't be reached, it falls back to a chime, the phone's own voice and the offline 1-0-1 reader.</p>
+            </details>
+            <details>
+              <summary>Is this medical advice?</summary>
+              <p>No. Dawai Dost helps you follow the plan your doctor gave you. For a missed dose it says: don't double up, ask your doctor or pharmacist.</p>
+            </details>
+          </div>
+        </section>
+
+        <section class="cta container" aria-labelledby="cta-title">
+          <h2 id="cta-title">Set up Dadi's medicines in two minutes.</h2>
+          <p>Free. No email or password. Only you can see the list.</p>
+          <button type="button" class="btn btn--primary btn--xl" data-open-app>Get started</button>
         </section>
       </main>
 
       <footer class="site-footer">
-        <div class="container"><p>Not medical advice. Your list stays private to this browser.</p></div>
+        <div class="container"><p>Dawai Dost (<span lang="hi">दवाई दोस्त</span>, "medicine friend"). Not medical advice: always follow your doctor. Sample medicine photos from <a href="/demo/CREDITS.md">Wikimedia Commons</a>.</p></div>
       </footer>
     </div>
 

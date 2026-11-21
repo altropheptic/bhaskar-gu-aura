@@ -1,8 +1,9 @@
 /**
  * Keeping family in the loop: WhatsApp summary + private caregiver links.
  *
- * Why: in an Indian study, adherence was 77% with a caregiver involved vs 44%
- * without. Many caregivers live in another city, so we make checking in easy.
+ * Why: about half of older adults on several medicines miss doses, and family
+ * help is a key support. Many caregivers live in another city, so we make
+ * checking in easy.
  *
  * Caregiver link security: the token is 24 random bytes from the browser's
  * crypto RNG. Only its SHA-256 hash is stored in the database, so even a
