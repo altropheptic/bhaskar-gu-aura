@@ -52,7 +52,7 @@ export function renderHistory(panel) {
   for (let i = 0; i < 7; i += 1) {
     for (const d of dosesForDay(state.medicines, addDays(startOfDay(now), -i))) {
       const s = doseStatus(d, state.logIndex, now);
-      if (s === 'missed') missedWeek += 1;
+      if (s === 'missed' || s === 'skipped') missedWeek += 1;
     }
   }
 
@@ -60,8 +60,8 @@ export function renderHistory(panel) {
   const stats = el('div', { className: 'stats' }, [
     stat(week === null ? '–' : `${week}%`, 'Taken this week'),
     stat(fortnight === null ? '–' : `${fortnight}%`, 'Taken in 14 days'),
-    stat(`${days}`, days === 1 ? 'Day streak' : 'Day streak'),
-    stat(`${missedWeek}`, 'Missed this week'),
+    stat(`${days}`, days === 1 ? 'Day in a row' : 'Days in a row'),
+    stat(`${missedWeek}`, 'Missed or skipped (7 days)'),
   ]);
 
   const badgeDefs = [[3, '3-day streak'], [7, 'Perfect week'], [14, 'Two strong weeks'], [30, 'Month of care']];

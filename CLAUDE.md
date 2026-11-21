@@ -15,7 +15,11 @@ When planning or reviewing work, say which criteria it serves; the README gets o
 
 ## Current state
 
-**Nothing is built yet, on purpose.** Only infrastructure exists (repo, Vercel, Supabase, env vars, tooling) and the site shows a placeholder. Do not write app code until the owner shares the problem statement; then propose the idea, Supabase schema with RLS and a time-boxed build plan, and get a go-ahead before coding.
+**Building PS02 MediTrack as "Dawai Dost"** (medicine reminders for elders). The approved plan covers: Supabase anonymous no-login accounts + RLS, Today/Medicines/Progress/Family tabs, alarms with voice, one-tap big mode, Gemini prescription parsing (text + photo) and "explain", ElevenLabs voice, caregiver links, WhatsApp summary, .ics export, doctor report, emergency card, PWA.
+
+**Hold rules (owner, 21 Nov):** no `git push` and no Vercel deploy until the owner says so. Local commits and Supabase migrations are allowed. Verify locally (`npm run dev` for UI; `vercel dev` for `/api`; note `vercel dev` applies the CSP, which blocks Vite's dev-only inline styles).
+
+**Design (owner-approved):** fonts Lexend (headings) + Atkinson Hyperlegible Next (body), self-hosted via Fontsource; palette "Neem & Marigold" (tokens in `css/styles.css`); custom duotone SVG icons in the sprite in `index.html`. Avoid AI-slop defaults (Inter/Poppins/etc., purple gradients, icon libraries, sparkle icons, emoji icons).
 
 ## Project facts
 
@@ -24,7 +28,7 @@ When planning or reviewing work, say which criteria it serves; the README gets o
 - Supabase: project `bhaskar-gu-aura`, ref `fkyozmweopldnopwdylm`, Mumbai, linked locally (`supabase/`). Use the **Supabase MCP** for schema work (`apply_migration`, `execute_sql`, `get_advisors`).
 - Vercel: project `bhaskar-gu-aura` (team `altropheptic`), functions pinned to `bom1` (Mumbai); `vercel.json` sets clean URLs and security headers (CSP allows only self + our Supabase project). Use the **Vercel MCP** for deployments, logs and env vars; the CLI is linked too.
 - Env vars live in Vercel; `vercel env pull .env.local` locally. Browser-safe: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`. Server-only (`/api`): `SUPABASE_URL`, `SUPABASE_SECRET_KEY`.
-- **No AI API in the app** unless the owner asks. If they do: `/api/ai.js` with AI SDK + Vercel AI Gateway (OIDC auth; preferred model `anthropic/claude-opus-5.5`, `reasoning: 'high'`), browser talks only to our `/api`, with a fallback. The gateway needs a credit card on the Vercel account first.
+- **AI APIs (owner-approved):** Google Gemini in `/api/ai.js` (`GEMINI_API_KEY`, model `GEMINI_MODEL`, default `gemini-flash-latest`) and ElevenLabs in `/api/tts.js` (`ELEVENLABS_API_KEY`, optional `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL`). Browser talks only to our `/api`, which requires a Supabase session JWT; every AI feature has a non-AI fallback.
 - A full rubric-oriented foundation (modular JS, CSS, docs, 404, schema template) was drafted and then removed on 20 Nov; it can be restored from commit `5d2f18a` if the owner wants it.
 
 ## Stack (non-negotiable)

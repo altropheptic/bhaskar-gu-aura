@@ -95,7 +95,12 @@ export function parsePrescription(text, today = new Date()) {
   else if (/\b(inhaler|puffs?|rotacap)\b/i.test(rest)) fields.form = 'inhaler';
   else if (/\b(inj|injection|insulin)\b/i.test(rest)) fields.form = 'injection';
   else if (/\b(tab|tabs|tablet)\b/i.test(rest)) fields.form = 'tablet';
-  if (fields.form === 'syrup') fields.shape = 'liquid';
+  if (fields.form === 'syrup') {
+    fields.shape = 'liquid';
+    // For liquids the dose is the ml amount ("10 ml HS" = 10 ml each time).
+    const ml = strength && /ml/i.test(strength[2]) ? Number(strength[1]) : NaN;
+    if (ml >= 0.5 && ml <= 20) fields.dose_qty = ml;
+  }
   if (fields.form === 'capsule') fields.shape = 'capsule';
 
   // Name: what's left, minus form words and filler
