@@ -13,25 +13,42 @@ vi.mock('../js/supabaseClient.js', () => ({
   isSupabaseConfigured: false,
   getAccessToken: vi.fn(async () => null),
   getSupabase: vi.fn(async () => null),
-  ensureAnonymousSession: vi.fn(async () => { throw new Error('offline'); }),
-  db: () => { throw new Error('no cloud'); },
+  ensureAnonymousSession: vi.fn(async () => {
+    throw new Error('offline');
+  }),
+  db: () => {
+    throw new Error('no cloud');
+  },
 }));
 
 const $ = (sel) => document.querySelector(sel);
 const wait = (ms = 20) => new Promise((r) => setTimeout(r, ms));
 async function until(check, ms = 3000) {
   const end = Date.now() + ms;
-  while (!check()) { if (Date.now() > end) throw new Error('timed out'); await wait(); }
+  while (!check()) {
+    if (Date.now() > end) throw new Error('timed out');
+    await wait();
+  }
 }
 
 beforeAll(async () => {
   const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
   document.body.innerHTML = html.match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
-  HTMLDialogElement.prototype.showModal = function showModal() { this.open = true; };
-  HTMLDialogElement.prototype.close = function close() { this.open = false; this.dispatchEvent(new Event('close')); };
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close = function close() {
+    this.open = false;
+    this.dispatchEvent(new Event('close'));
+  };
   Element.prototype.scrollIntoView = () => {};
   window.scrollTo = () => {};
-  vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => {
+      throw new Error('offline');
+    }),
+  );
   vi.spyOn(console, 'info').mockImplementation(() => {});
   localStorage.clear();
   await import('../js/app.js');
@@ -87,7 +104,9 @@ describe('in the app', () => {
     $('#settings-btn').click();
     expect($('#settings-dialog').open).toBe(true);
     expect($('#settings-dialog').textContent).toContain('Extra large');
-    expect([...$('#settings-dialog').querySelectorAll('button')].some((b) => b.textContent.includes('Log out'))).toBe(true);
+    expect([...$('#settings-dialog').querySelectorAll('button')].some((b) => b.textContent.includes('Log out'))).toBe(
+      true,
+    );
     $('#settings-dialog').close();
   });
 });

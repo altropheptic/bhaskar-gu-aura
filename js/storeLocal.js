@@ -4,7 +4,15 @@
  * Why: if Supabase can't be reached, an elder must still see and log today's
  * doses. Same interface as the cloud backend, including the double-dose guard.
  */
-import { PROFILE_COLS, MEDICINE_COLS, LOG_COLS, DuplicateDoseError, pick, normMedicine, normProfile } from './storeRows.js';
+import {
+  PROFILE_COLS,
+  MEDICINE_COLS,
+  LOG_COLS,
+  DuplicateDoseError,
+  pick,
+  normMedicine,
+  normProfile,
+} from './storeRows.js';
 
 export const LOCAL_KEY = 'dawai-dost-local-v1';
 
@@ -23,16 +31,24 @@ export class MemoryBackend {
     try {
       const raw = localStorage.getItem(LOCAL_KEY);
       if (raw) data = { ...data, ...JSON.parse(raw) };
-    } catch { /* corrupted or blocked storage: start empty */ }
+    } catch {
+      /* corrupted or blocked storage: start empty */
+    }
     return new MemoryBackend(data, LOCAL_KEY);
   }
 
   save() {
     if (!this.persistKey) return;
-    try { localStorage.setItem(this.persistKey, JSON.stringify(this.data)); } catch { /* storage full/blocked */ }
+    try {
+      localStorage.setItem(this.persistKey, JSON.stringify(this.data));
+    } catch {
+      /* storage full/blocked */
+    }
   }
 
-  async listProfiles() { return this.data.profiles.map(normProfile); }
+  async listProfiles() {
+    return this.data.profiles.map(normProfile);
+  }
 
   async saveProfile(p) {
     const clean = pick(p, PROFILE_COLS);
@@ -105,14 +121,22 @@ export class MemoryBackend {
 
   /** Bulk-load a starter set (the sample family) into this device's list. */
   async importAll({ profiles, medicines, logs }) {
-    this.data.profiles.push(...profiles.map((p) => ({ id: p.id, created_at: new Date().toISOString(), ...pick(p, PROFILE_COLS) })));
-    this.data.medicines.push(...medicines.map((m) => ({ id: m.id, created_at: new Date().toISOString(), ...pick(m, MEDICINE_COLS) })));
+    this.data.profiles.push(
+      ...profiles.map((p) => ({ id: p.id, created_at: new Date().toISOString(), ...pick(p, PROFILE_COLS) })),
+    );
+    this.data.medicines.push(
+      ...medicines.map((m) => ({ id: m.id, created_at: new Date().toISOString(), ...pick(m, MEDICINE_COLS) })),
+    );
     this.data.logs.push(...logs.map((l) => pick(l, LOG_COLS)));
     this.save();
   }
 
-  async listLinks(profileId) { return this.data.links.filter((l) => l.profile_id === profileId); }
-  async createLink() { throw new Error('Caregiver links need the online (cloud) mode.'); }
+  async listLinks(profileId) {
+    return this.data.links.filter((l) => l.profile_id === profileId);
+  }
+  async createLink() {
+    throw new Error('Caregiver links need the online (cloud) mode.');
+  }
   async revokeLink(id) {
     const link = this.data.links.find((l) => l.id === id);
     if (link) link.revoked = true;

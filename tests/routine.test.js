@@ -4,7 +4,13 @@
 import { describe, it, expect } from 'vitest';
 import { routineOf, slotTime, buildSchedule, retime, doseSlotLabel } from '../js/routine.js';
 
-const routine = routineOf({ breakfast_time: '08:00', lunch_time: '13:00', dinner_time: '20:30', bed_time: '22:00', wake_time: '06:00' });
+const routine = routineOf({
+  breakfast_time: '08:00',
+  lunch_time: '13:00',
+  dinner_time: '20:30',
+  bed_time: '22:00',
+  wake_time: '06:00',
+});
 
 describe('slotTime', () => {
   it('shifts meal slots by food timing', () => {

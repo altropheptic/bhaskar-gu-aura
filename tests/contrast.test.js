@@ -18,7 +18,8 @@ const token = (name) => {
 
 /** WCAG relative luminance and contrast ratio. */
 const lum = (hex) => {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+  const [r, g, b] = [1, 3, 5]
+    .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
     .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };
@@ -28,12 +29,28 @@ const ratio = (a, b) => {
 };
 
 const TEXT_PAIRS = [
-  ['ink', 'bg'], ['ink', 'surface'], ['muted', 'bg'], ['muted', 'surface'],
-  ['on-primary', 'primary'], ['on-lime', 'lime'], ['on-lime', 'lime-soft'], ['on-accent', 'accent'],
-  ['ink', 'accent-soft'], ['ok', 'ok-soft'], ['ok', 'surface'], ['danger', 'danger-soft'], ['danger', 'surface'],
+  ['ink', 'bg'],
+  ['ink', 'surface'],
+  ['muted', 'bg'],
+  ['muted', 'surface'],
+  ['on-primary', 'primary'],
+  ['on-lime', 'lime'],
+  ['on-lime', 'lime-soft'],
+  ['on-accent', 'accent'],
+  ['ink', 'accent-soft'],
+  ['ok', 'ok-soft'],
+  ['ok', 'surface'],
+  ['danger', 'danger-soft'],
+  ['danger', 'surface'],
   ['brand', 'surface'],
 ];
-const UI_PAIRS = [['focus', 'bg'], ['focus', 'surface'], ['accent-line', 'surface'], ['accent-line', 'accent-soft'], ['accent-line', 'bg']];
+const UI_PAIRS = [
+  ['focus', 'bg'],
+  ['focus', 'surface'],
+  ['accent-line', 'surface'],
+  ['accent-line', 'accent-soft'],
+  ['accent-line', 'bg'],
+];
 
 describe('WCAG AA contrast of the palette', () => {
   it.each(TEXT_PAIRS)('text --%s on --%s is at least 4.5:1', (fg, bg) => {

@@ -28,12 +28,20 @@ async function audit(context = document) {
     rules: { 'color-contrast': { enabled: false } },
     resultTypes: ['violations'],
   });
-  return violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(', ')}`);
+  return violations.map(
+    (v) =>
+      `${v.id}: ${v.nodes
+        .map((n) => n.target.join(' '))
+        .slice(0, 3)
+        .join(', ')}`,
+  );
 }
 
 describe('home page', () => {
   beforeAll(() => load('index.html'));
-  it('has no axe violations', async () => { expect(await audit()).toEqual([]); });
+  it('has no axe violations', async () => {
+    expect(await audit()).toEqual([]);
+  });
   it('declares the language, a title, one h1 and a skip link', () => {
     expect(document.documentElement.lang).toBe('en');
     expect(document.title).toMatch(/Dawai Dost/);
@@ -65,10 +73,14 @@ describe('app shell with the Today screen', () => {
     document.getElementById('app').hidden = false;
     renderToday(document.getElementById('panel-today'));
   });
-  it('has no axe violations', async () => { expect(await audit(document.getElementById('app'))).toEqual([]); });
+  it('has no axe violations', async () => {
+    expect(await audit(document.getElementById('app'))).toEqual([]);
+  });
 });
 
 describe('family (caregiver) page', () => {
   beforeAll(() => load('caregiver.html'));
-  it('has no axe violations', async () => { expect(await audit()).toEqual([]); });
+  it('has no axe violations', async () => {
+    expect(await audit()).toEqual([]);
+  });
 });

@@ -4,17 +4,40 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  isoDate, addDays, startOfDay, isScheduledOn, dosesForDay, indexLogs, findLog,
-  doseStatus, adherence, streak, daysOfSupply, duplicateGenerics,
+  isoDate,
+  addDays,
+  startOfDay,
+  isScheduledOn,
+  dosesForDay,
+  indexLogs,
+  findLog,
+  doseStatus,
+  adherence,
+  streak,
+  daysOfSupply,
+  duplicateGenerics,
 } from '../js/schedule.js';
 
 const day = new Date(2026, 10, 21); // Sat 21 Nov 2026 (local time)
 const med = (over = {}) => ({
-  id: 'm1', name: 'Metformin', generic_name: 'Metformin', active: true,
-  days: [0, 1, 2, 3, 4, 5, 6], times: ['08:15', '20:45'], slots: ['breakfast', 'dinner'],
-  start_date: '2026-11-01', end_date: null, dose_qty: 1, stock: 30, ...over,
+  id: 'm1',
+  name: 'Metformin',
+  generic_name: 'Metformin',
+  active: true,
+  days: [0, 1, 2, 3, 4, 5, 6],
+  times: ['08:15', '20:45'],
+  slots: ['breakfast', 'dinner'],
+  start_date: '2026-11-01',
+  end_date: null,
+  dose_qty: 1,
+  stock: 30,
+  ...over,
 });
-const at = (h, m = 0, d = day) => { const x = new Date(d); x.setHours(h, m, 0, 0); return x; };
+const at = (h, m = 0, d = day) => {
+  const x = new Date(d);
+  x.setHours(h, m, 0, 0);
+  return x;
+};
 
 describe('dates', () => {
   it('formats local dates as YYYY-MM-DD', () => {
@@ -84,7 +107,9 @@ describe('adherence and streak', () => {
 
   it('breaks the streak on a missed day', () => {
     const m = med({ times: ['08:15'], slots: ['breakfast'], start_date: '2026-11-19' });
-    const logs = indexLogs([{ medicine_id: 'm1', scheduled_for: at(8, 15, addDays(day, -2)).toISOString(), status: 'taken' }]);
+    const logs = indexLogs([
+      { medicine_id: 'm1', scheduled_for: at(8, 15, addDays(day, -2)).toISOString(), status: 'taken' },
+    ]);
     expect(streak([m], logs, at(9))).toBe(0);
     expect(adherence([m], logs, 7, at(9))).toBe(50);
   });

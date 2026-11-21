@@ -46,7 +46,9 @@ function renderHeader() {
   badge.textContent = String(count);
   $('#health-btn').setAttribute('aria-label', count ? `Alerts: ${count}` : 'Alerts: none');
   sel.replaceChildren(
-    ...state.profiles.map((p) => el('option', { text: p.name, attrs: { value: p.id, selected: p.id === state.profileId } })),
+    ...state.profiles.map((p) =>
+      el('option', { text: p.name, attrs: { value: p.id, selected: p.id === state.profileId } }),
+    ),
     el('option', { text: '+ Add a person', attrs: { value: '__new' } }),
   );
 }
@@ -65,7 +67,9 @@ function showTab(tab) {
     if (t.dataset.tab === tab) t.setAttribute('aria-current', 'page');
     else t.removeAttribute('aria-current');
   });
-  document.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== tab; });
+  document.querySelectorAll('[data-panel]').forEach((p) => {
+    p.hidden = p.dataset.panel !== tab;
+  });
   window.scrollTo(0, 0);
   render();
 }
@@ -81,7 +85,9 @@ function showApp() {
 }
 
 function showWelcome() {
-  document.querySelectorAll('[data-open-app]').forEach((b) => { b.textContent = 'View my medicines'; });
+  document.querySelectorAll('[data-open-app]').forEach((b) => {
+    b.textContent = 'View my medicines';
+  });
   $('#landing').hidden = false;
   $('#app').hidden = true;
   document.body.classList.remove('in-app');
@@ -102,7 +108,9 @@ function logOut() {
 
 subscribe(render);
 // Keep "due / missed" states fresh even when nothing is clicked.
-setInterval(() => { if (!$('#app').hidden && state.tab === 'today' && !document.querySelector('dialog[open]')) render(); }, 60_000);
+setInterval(() => {
+  if (!$('#app').hidden && state.tab === 'today' && !document.querySelector('dialog[open]')) render();
+}, 60_000);
 
 /* ---------------- actions ---------------- */
 
@@ -140,39 +148,92 @@ function openSettings() {
   const dialog = /** @type {HTMLDialogElement} */ ($('#settings-dialog'));
   const s = getSettings();
   const body = openDialog(dialog, 'Settings', 'settings-title');
-  const radios = (legend, name, options, value) => el('fieldset', {}, [
-    el('legend', { text: legend }),
-    el('div', { className: 'check-row' }, options.map(([v, label]) => {
-      const input = el('input', { attrs: { type: 'radio', name, value: v, checked: v === value } });
-      input.addEventListener('change', () => setSettings({ [name]: v }));
-      return el('label', {}, [input, label]);
-    })),
-  ]);
+  const radios = (legend, name, options, value) =>
+    el('fieldset', {}, [
+      el('legend', { text: legend }),
+      el(
+        'div',
+        { className: 'check-row' },
+        options.map(([v, label]) => {
+          const input = el('input', { attrs: { type: 'radio', name, value: v, checked: v === value } });
+          input.addEventListener('change', () => setSettings({ [name]: v }));
+          return el('label', {}, [input, label]);
+        }),
+      ),
+    ]);
   const voice = el('input', { attrs: { type: 'checkbox', checked: s.voice } });
   voice.addEventListener('change', () => setSettings({ voice: /** @type {HTMLInputElement} */ (voice).checked }));
 
-  const notifyBtn = el('button', { className: 'btn btn--outline', text: 'Allow notifications', attrs: { type: 'button' } });
+  const notifyBtn = el('button', {
+    className: 'btn btn--outline',
+    text: 'Allow notifications',
+    attrs: { type: 'button' },
+  });
   notifyBtn.addEventListener('click', async () => {
     const result = await enableNotifications();
-    toast(result === 'granted' ? 'Notifications are on.' : result === 'unsupported' ? 'This browser cannot show notifications.' : 'Notifications were not allowed.');
+    toast(
+      result === 'granted'
+        ? 'Notifications are on.'
+        : result === 'unsupported'
+          ? 'This browser cannot show notifications.'
+          : 'Notifications were not allowed.',
+    );
   });
-  const soundBtn = el('button', { className: 'btn btn--ghost', text: 'Test sound', attrs: { type: 'button' }, on: { click: () => testChime() } });
+  const soundBtn = el('button', {
+    className: 'btn btn--ghost',
+    text: 'Test sound',
+    attrs: { type: 'button' },
+    on: { click: () => testChime() },
+  });
 
   body.replaceChildren(
-    radios('Text size', 'size', [['normal', 'Normal'], ['xl', 'Extra large']], s.size),
-    el('fieldset', {}, [el('legend', { text: 'Reminders' }), el('div', { className: 'check-row' }, [el('label', {}, [voice, 'Speak aloud'])])]),
+    radios(
+      'Text size',
+      'size',
+      [
+        ['normal', 'Normal'],
+        ['xl', 'Extra large'],
+      ],
+      s.size,
+    ),
+    el('fieldset', {}, [
+      el('legend', { text: 'Reminders' }),
+      el('div', { className: 'check-row' }, [el('label', {}, [voice, 'Speak aloud'])]),
+    ]),
     el('div', { className: 'btn-row' }, [notifyBtn, soundBtn]),
     el('hr'),
-    currentProfile() && el('button', { className: 'btn btn--ghost', text: `Edit ${currentProfile().name}'s details`, attrs: { type: 'button' }, on: { click: () => { dialog.close(); openProfileDialog(currentProfile()); } } }),
+    currentProfile() &&
+      el('button', {
+        className: 'btn btn--ghost',
+        text: `Edit ${currentProfile().name}'s details`,
+        attrs: { type: 'button' },
+        on: {
+          click: () => {
+            dialog.close();
+            openProfileDialog(currentProfile());
+          },
+        },
+      }),
     el('div', { className: 'btn-row' }, [
-      el('button', { className: 'btn btn--primary', attrs: { type: 'button' }, on: { click: () => logOut() } }, [icon('logout'), 'Log out']),
+      el('button', { className: 'btn btn--primary', attrs: { type: 'button' }, on: { click: () => logOut() } }, [
+        icon('logout'),
+        'Log out',
+      ]),
     ]),
   );
 }
 
 /* ---------------- wiring ---------------- */
 
-document.querySelectorAll('[data-open-app]').forEach((btn) => btn.addEventListener('click', (e) => openApp(/** @type {HTMLButtonElement} */ (e.currentTarget)).catch((err) => showBanner('error', err.message || 'Could not open. Please try again.'))));
+document
+  .querySelectorAll('[data-open-app]')
+  .forEach((btn) =>
+    btn.addEventListener('click', (e) =>
+      openApp(/** @type {HTMLButtonElement} */ (e.currentTarget)).catch((err) =>
+        showBanner('error', err.message || 'Could not open. Please try again.'),
+      ),
+    ),
+  );
 $('#settings-btn').addEventListener('click', openSettings);
 $('#add-med-btn').addEventListener('click', () => openMedicineDialog());
 $('#fab-add').addEventListener('click', () => openMedicineDialog());
@@ -192,9 +253,15 @@ $('#profile-select').addEventListener('change', (e) => {
 /* ---------------- boot ---------------- */
 
 // A returning visitor sees "View my medicines" on the home page.
-ready.then(() => store.listProfiles()).then((people) => {
-  if (people.length) document.querySelectorAll('[data-open-app]').forEach((b) => { b.textContent = 'View my medicines'; });
-}).catch(() => {});
+ready
+  .then(() => store.listProfiles())
+  .then((people) => {
+    if (people.length)
+      document.querySelectorAll('[data-open-app]').forEach((b) => {
+        b.textContent = 'View my medicines';
+      });
+  })
+  .catch(() => {});
 
 // Installable / offline: register the service worker in production builds only
 // (in development it would cache stale files while we edit).

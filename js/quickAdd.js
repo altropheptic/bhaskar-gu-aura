@@ -18,12 +18,20 @@ const hint = (text) => el('p', { className: 'field__hint', text });
  * @returns {HTMLElement}
  */
 export function quickAddSection(applyFields) {
-  const quickIn = /** @type {HTMLTextAreaElement} */ (el('textarea', {
-    attrs: { id: 'quick-text', rows: 2, maxlength: 1000, placeholder: 'Metformin 500mg 1-0-1 after food 30 days' },
-  }));
+  const quickIn = /** @type {HTMLTextAreaElement} */ (
+    el('textarea', {
+      attrs: { id: 'quick-text', rows: 2, maxlength: 1000, placeholder: 'Metformin 500mg 1-0-1 after food 30 days' },
+    })
+  );
   const results = el('div', { attrs: { 'aria-live': 'polite' } });
-  const fillBtn = /** @type {HTMLButtonElement} */ (el('button', { className: 'btn btn--primary', attrs: { type: 'button' } }, [icon('rx'), 'Quick fill']));
-  const scanIn = /** @type {HTMLInputElement} */ (el('input', { attrs: { type: 'file', accept: 'image/*', capture: 'environment', 'aria-label': 'Scan a prescription photo' } }));
+  const fillBtn = /** @type {HTMLButtonElement} */ (
+    el('button', { className: 'btn btn--primary', attrs: { type: 'button' } }, [icon('rx'), 'Quick fill'])
+  );
+  const scanIn = /** @type {HTMLInputElement} */ (
+    el('input', {
+      attrs: { type: 'file', accept: 'image/*', capture: 'environment', 'aria-label': 'Scan a prescription photo' },
+    })
+  );
   const scanBtn = el('span', { className: 'btn btn--outline file-btn' }, [icon('camera'), 'Scan', scanIn]);
 
   /** Offline reading. @returns {boolean} true when it understood the text */
@@ -48,10 +56,18 @@ export function quickAddSection(applyFields) {
     }
     results.replaceChildren(
       hint(`${meds.length} found. Tap one to fill, then save each.`),
-      el('div', { className: 'btn-row' }, meds.map((med) => el('button', {
-        className: 'btn btn--sm btn--ghost', text: `${med.name} ${med.dosage}`.trim(), attrs: { type: 'button' },
-        on: { click: () => applyFields(med) },
-      }))),
+      el(
+        'div',
+        { className: 'btn-row' },
+        meds.map((med) =>
+          el('button', {
+            className: 'btn btn--sm btn--ghost',
+            text: `${med.name} ${med.dosage}`.trim(),
+            attrs: { type: 'button' },
+            on: { click: () => applyFields(med) },
+          }),
+        ),
+      ),
     );
   };
 
@@ -77,7 +93,12 @@ export function quickAddSection(applyFields) {
   scanIn.addEventListener('change', async () => {
     const file = scanIn.files?.[0];
     if (!file) return;
-    results.replaceChildren(el('p', { className: 'field__hint' }, [el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true' } }), ' Reading photo…']));
+    results.replaceChildren(
+      el('p', { className: 'field__hint' }, [
+        el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true' } }),
+        ' Reading photo…',
+      ]),
+    );
     try {
       showAiResults(await parsePhotoWithAi(file), 'photo');
     } catch (err) {
@@ -88,9 +109,7 @@ export function quickAddSection(applyFields) {
   });
 
   return el('section', { className: 'quick-entry', attrs: { 'aria-label': 'Quick add' } }, [
-    el('div', { className: 'quick-entry__head' }, [
-      el('label', { text: 'Quick add', attrs: { for: 'quick-text' } }),
-    ]),
+    el('div', { className: 'quick-entry__head' }, [el('label', { text: 'Quick add', attrs: { for: 'quick-text' } })]),
     quickIn,
     el('div', { className: 'btn-row' }, [fillBtn, scanBtn]),
     results,

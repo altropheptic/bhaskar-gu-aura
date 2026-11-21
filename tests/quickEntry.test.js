@@ -10,13 +10,23 @@ describe('parsePrescription', () => {
   it('reads the Indian 1-0-1 notation, strength, food timing and duration', () => {
     const { fields } = parsePrescription('Metformin 500mg 1-0-1 after food 30 days', today);
     expect(fields).toMatchObject({
-      name: 'Metformin', dosage: '500 mg', slots: ['breakfast', 'dinner'], dose_qty: 1, meal: 'after', end_date: '2026-12-20',
+      name: 'Metformin',
+      dosage: '500 mg',
+      slots: ['breakfast', 'dinner'],
+      dose_qty: 1,
+      meal: 'after',
+      end_date: '2026-12-20',
     });
   });
 
   it('understands Latin shorthand like BD and HS', () => {
     expect(parsePrescription('Telma 40 mg BD', today).fields.slots).toEqual(['breakfast', 'dinner']);
-    expect(parsePrescription('Cremaffin syrup 10 ml HS', today).fields).toMatchObject({ slots: ['bed'], form: 'syrup', dose_qty: 10, shape: 'liquid' });
+    expect(parsePrescription('Cremaffin syrup 10 ml HS', today).fields).toMatchObject({
+      slots: ['bed'],
+      form: 'syrup',
+      dose_qty: 10,
+      shape: 'liquid',
+    });
   });
 
   it('handles half tablets and a four-slot pattern', () => {

@@ -19,7 +19,11 @@ export function getSettings() {
 /** @param {Partial<ReturnType<typeof getSettings>>} patch */
 export function setSettings(patch) {
   const next = { ...getSettings(), ...patch };
-  try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* storage blocked */ }
+  try {
+    localStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    /* storage blocked */
+  }
   applySettings(next);
   return next;
 }

@@ -10,11 +10,12 @@ import { readJson, rateLimited, overDailyQuota } from '../api/_lib.js';
 
 let ip = 0;
 /** Each request gets its own fake IP so the per-IP rate limit doesn't interfere. */
-const req = (url, { body, headers = {}, method = 'POST' } = {}) => new Request(`https://test.local${url}`, {
-  method,
-  headers: { 'content-type': 'application/json', 'x-forwarded-for': `10.0.0.${(ip += 1)}`, ...headers },
-  body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body),
-});
+const req = (url, { body, headers = {}, method = 'POST' } = {}) =>
+  new Request(`https://test.local${url}`, {
+    method,
+    headers: { 'content-type': 'application/json', 'x-forwarded-for': `10.0.0.${(ip += 1)}`, ...headers },
+    body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body),
+  });
 
 describe('readJson', () => {
   it('rejects wrong content type, oversized and non-object bodies', async () => {

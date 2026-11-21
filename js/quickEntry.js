@@ -43,7 +43,8 @@ export function parsePrescription(text, today = new Date()) {
   let rest = ` ${String(text || '').slice(0, 300)} `;
 
   // 1-0-1 / 1-1-1 / ½-0-½ / 1-0-0-1
-  const slotRe = /(?:^|\s)((?:\d|½|1\/2)(?:\.\d)?)\s*-\s*((?:\d|½|1\/2)(?:\.\d)?)\s*-\s*((?:\d|½|1\/2)(?:\.\d)?)(?:\s*-\s*((?:\d|½|1\/2)(?:\.\d)?))?(?=\s|$)/;
+  const slotRe =
+    /(?:^|\s)((?:\d|½|1\/2)(?:\.\d)?)\s*-\s*((?:\d|½|1\/2)(?:\.\d)?)\s*-\s*((?:\d|½|1\/2)(?:\.\d)?)(?:\s*-\s*((?:\d|½|1\/2)(?:\.\d)?))?(?=\s|$)/;
   const slot = rest.match(slotRe);
   let pattern = null;
   if (slot) {
@@ -51,7 +52,11 @@ export function parsePrescription(text, today = new Date()) {
     rest = rest.replace(slot[0], ' ');
   } else {
     for (const f of FREQ_WORDS) {
-      if (f.re.test(rest)) { pattern = f.pattern; rest = rest.replace(f.re, ' '); break; }
+      if (f.re.test(rest)) {
+        pattern = f.pattern;
+        rest = rest.replace(f.re, ' ');
+        break;
+      }
     }
   }
   if (pattern && pattern.some((n) => n > 0)) {
@@ -70,7 +75,10 @@ export function parsePrescription(text, today = new Date()) {
     fields.meal = 'with';
   }
   if (fields.meal) understood.push(`${fields.meal} food`);
-  rest = rest.replace(/\b(before|after|with) (food|meals?|breakfast|lunch|dinner|milk)\b|empty stomach|khali pet|khane ke baad/gi, ' ');
+  rest = rest.replace(
+    /\b(before|after|with) (food|meals?|breakfast|lunch|dinner|milk)\b|empty stomach|khali pet|khane ke baad/gi,
+    ' ',
+  );
 
   // Duration: "x 30 days", "for 2 weeks", "1 month"
   const dur = rest.match(/(?:x|for|×)?\s*(\d{1,3})\s*(days?|d|weeks?|wks?|months?)\b/i);
@@ -109,7 +117,10 @@ export function parsePrescription(text, today = new Date()) {
 
   // Name: what's left, minus form words and filler
   const name = rest
-    .replace(/\b(tab|tabs|tablet|cap|caps|capsule|syp|syrup|inj|injection|drops?|x|for|take|daily|morning|night|evening)\b\.?/gi, ' ')
+    .replace(
+      /\b(tab|tabs|tablet|cap|caps|capsule|syp|syrup|inj|injection|drops?|x|for|take|daily|morning|night|evening)\b\.?/gi,
+      ' ',
+    )
     .replace(/[^\p{L}\p{N} +-]/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();

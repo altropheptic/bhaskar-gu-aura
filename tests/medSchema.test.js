@@ -6,9 +6,25 @@ import { describe, it, expect } from 'vitest';
 import { cleanText, cleanTime, sanitizeAiMedicine, validateMedicine } from '../js/medSchema.js';
 
 const valid = {
-  name: 'Amlodipine', generic_name: 'Amlodipine', dosage: '5 mg', form: 'tablet', color: 'pink', shape: 'oval',
-  meal: 'any', times: ['08:00'], slots: ['breakfast'], days: [0, 1, 2, 3, 4, 5, 6], dose_qty: 1, stock: 30,
-  refill_at: 5, start_date: '2026-11-21', end_date: null, notes: '', kept_at: 'Steel dabba', doctor: 'Dr. Baruah', photo: null,
+  name: 'Amlodipine',
+  generic_name: 'Amlodipine',
+  dosage: '5 mg',
+  form: 'tablet',
+  color: 'pink',
+  shape: 'oval',
+  meal: 'any',
+  times: ['08:00'],
+  slots: ['breakfast'],
+  days: [0, 1, 2, 3, 4, 5, 6],
+  dose_qty: 1,
+  stock: 30,
+  refill_at: 5,
+  start_date: '2026-11-21',
+  end_date: null,
+  notes: '',
+  kept_at: 'Steel dabba',
+  doctor: 'Dr. Baruah',
+  photo: null,
 };
 
 describe('cleanText / cleanTime', () => {
@@ -29,10 +45,26 @@ describe('cleanText / cleanTime', () => {
 describe('sanitizeAiMedicine', () => {
   it('keeps only known fields and allowed values', () => {
     const out = sanitizeAiMedicine({
-      name: 'Glycomet', form: 'potion', meal: 'after', times: ['21:00', '8:00', '8:00', 'bad'], dose_qty: 99,
-      slots: ['breakfast', 'teatime'], color: 'white', shape: 'hexagon', doctor: 'Dr. S. Bora', evil: '<script>',
+      name: 'Glycomet',
+      form: 'potion',
+      meal: 'after',
+      times: ['21:00', '8:00', '8:00', 'bad'],
+      dose_qty: 99,
+      slots: ['breakfast', 'teatime'],
+      color: 'white',
+      shape: 'hexagon',
+      doctor: 'Dr. S. Bora',
+      evil: '<script>',
     });
-    expect(out).toMatchObject({ name: 'Glycomet', form: 'tablet', meal: 'after', times: ['08:00', '21:00'], dose_qty: 1, slots: ['breakfast'], color: 'white' });
+    expect(out).toMatchObject({
+      name: 'Glycomet',
+      form: 'tablet',
+      meal: 'after',
+      times: ['08:00', '21:00'],
+      dose_qty: 1,
+      slots: ['breakfast'],
+      color: 'white',
+    });
     expect(out.shape).toBeUndefined();
     expect(out.evil).toBeUndefined();
   });
@@ -49,7 +81,14 @@ describe('validateMedicine', () => {
   });
 
   it('explains each problem in plain words', () => {
-    const errors = validateMedicine({ ...valid, name: '', times: ['08:00', '08:00'], slots: ['breakfast', 'breakfast'], end_date: '2026-01-01', dose_qty: 0 });
+    const errors = validateMedicine({
+      ...valid,
+      name: '',
+      times: ['08:00', '08:00'],
+      slots: ['breakfast', 'breakfast'],
+      end_date: '2026-01-01',
+      dose_qty: 0,
+    });
     expect(errors).toContain('Enter the medicine name (up to 80 letters).');
     expect(errors).toContain('The same time is listed twice.');
     expect(errors).toContain('End date is before the start date.');

@@ -11,8 +11,24 @@ export const VOICE_FORMS = ['tablet', 'capsule', 'syrup', 'injection', 'drops', 
 export const VOICE_MEALS = ['before', 'after', 'with', 'any'];
 
 const UNIT = {
-  en: { tablet: ['tablet', 'tablets'], capsule: ['capsule', 'capsules'], syrup: ['ml', 'ml'], injection: ['injection', 'injections'], drops: ['drop', 'drops'], inhaler: ['puff', 'puffs'], other: ['dose', 'doses'] },
-  hi: { tablet: ['गोली', 'गोलियाँ'], capsule: ['कैप्सूल', 'कैप्सूल'], syrup: ['मिलीलीटर', 'मिलीलीटर'], injection: ['इंजेक्शन', 'इंजेक्शन'], drops: ['बूंद', 'बूंदें'], inhaler: ['पफ़', 'पफ़'], other: ['खुराक', 'खुराक'] },
+  en: {
+    tablet: ['tablet', 'tablets'],
+    capsule: ['capsule', 'capsules'],
+    syrup: ['ml', 'ml'],
+    injection: ['injection', 'injections'],
+    drops: ['drop', 'drops'],
+    inhaler: ['puff', 'puffs'],
+    other: ['dose', 'doses'],
+  },
+  hi: {
+    tablet: ['गोली', 'गोलियाँ'],
+    capsule: ['कैप्सूल', 'कैप्सूल'],
+    syrup: ['मिलीलीटर', 'मिलीलीटर'],
+    injection: ['इंजेक्शन', 'इंजेक्शन'],
+    drops: ['बूंद', 'बूंदें'],
+    inhaler: ['पफ़', 'पफ़'],
+    other: ['खुराक', 'खुराक'],
+  },
 };
 const MEAL = {
   en: { before: 'before food', after: 'after food', with: 'with food', any: '' },
@@ -32,18 +48,20 @@ function qtyWords(qty, lang) {
  */
 export function reminderText({ lang, person, medicines }) {
   const L = VOICE_LANGS.includes(lang) ? lang : 'en';
-  const parts = medicines.map((m) => {
-    const forms = UNIT[L][m.form] ?? UNIT[L].other;
-    const unit = m.qty === 1 || m.qty === 0.5 ? forms[0] : forms[1];
-    const meal = MEAL[L][m.meal] ?? '';
-    return L === 'hi'
-      ? [m.name, `${qtyWords(m.qty, L)} ${unit}`, meal].filter(Boolean).join(', ')
-      : `${qtyWords(m.qty, L)} ${unit} of ${m.name}${meal ? `, ${meal}` : ''}`;
-  }).map((text, i) => {
-    const place = medicines[i].place;
-    if (!place) return text;
-    return L === 'hi' ? `${text}। यह ${place} में रखी है` : `${text}. It is kept at ${place}`;
-  });
+  const parts = medicines
+    .map((m) => {
+      const forms = UNIT[L][m.form] ?? UNIT[L].other;
+      const unit = m.qty === 1 || m.qty === 0.5 ? forms[0] : forms[1];
+      const meal = MEAL[L][m.meal] ?? '';
+      return L === 'hi'
+        ? [m.name, `${qtyWords(m.qty, L)} ${unit}`, meal].filter(Boolean).join(', ')
+        : `${qtyWords(m.qty, L)} ${unit} of ${m.name}${meal ? `, ${meal}` : ''}`;
+    })
+    .map((text, i) => {
+      const place = medicines[i].place;
+      if (!place) return text;
+      return L === 'hi' ? `${text}। यह ${place} में रखी है` : `${text}. It is kept at ${place}`;
+    });
   if (L === 'hi') {
     return `${person ? `${person}, ` : ''}दवाई का समय हो गया है। ${parts.join('। फिर, ')}।`;
   }

@@ -16,9 +16,26 @@ import { buildSchedule } from './routine.js';
  */
 export function newMedicine(today = new Date()) {
   return {
-    name: '', generic_name: '', dosage: '', form: 'tablet', color: 'white', shape: 'round', meal: 'after',
-    times: [], slots: ['breakfast'], days: [0, 1, 2, 3, 4, 5, 6], dose_qty: 1, stock: null, refill_at: 5,
-    start_date: isoDate(today), end_date: null, active: true, notes: '', kept_at: '', doctor: '', photo: null,
+    name: '',
+    generic_name: '',
+    dosage: '',
+    form: 'tablet',
+    color: 'white',
+    shape: 'round',
+    meal: 'after',
+    times: [],
+    slots: ['breakfast'],
+    days: [0, 1, 2, 3, 4, 5, 6],
+    dose_qty: 1,
+    stock: null,
+    refill_at: 5,
+    start_date: isoDate(today),
+    end_date: null,
+    active: true,
+    notes: '',
+    kept_at: '',
+    doctor: '',
+    photo: null,
   };
 }
 

@@ -9,7 +9,10 @@ import { getAccessToken } from './supabaseClient.js';
 import { sanitizeAiMedicine } from './medSchema.js';
 
 export class AiUnavailableError extends Error {
-  constructor(message = 'The AI assistant is not available right now.') { super(message); this.name = 'AiUnavailableError'; }
+  constructor(message = 'The AI assistant is not available right now.') {
+    super(message);
+    this.name = 'AiUnavailableError';
+  }
 }
 
 /** POST to /api/ai with the session token. */
@@ -67,7 +70,11 @@ export async function parsePhotoWithAi(file) {
   }
   if (file.size > 15 * 1024 * 1024) throw new AiUnavailableError('That photo is too large.');
   let image;
-  try { image = await downscale(file); } catch { throw new AiUnavailableError('Could not read that photo. Try another one.'); }
+  try {
+    image = await downscale(file);
+  } catch {
+    throw new AiUnavailableError('Could not read that photo. Try another one.');
+  }
   const data = await callAi({ action: 'parsePhoto', image, mime: 'image/jpeg' }, 50000);
   return (Array.isArray(data.medicines) ? data.medicines : []).map(sanitizeAiMedicine).filter(Boolean);
 }
@@ -79,7 +86,13 @@ export async function parsePhotoWithAi(file) {
  * @returns {Promise<string>}
  */
 export async function explainWithAi(med, lang) {
-  const data = await callAi({ action: 'explain', name: med.name, generic_name: med.generic_name ?? '', dosage: med.dosage ?? '', lang });
+  const data = await callAi({
+    action: 'explain',
+    name: med.name,
+    generic_name: med.generic_name ?? '',
+    dosage: med.dosage ?? '',
+    lang,
+  });
   if (typeof data.text !== 'string' || !data.text.trim()) throw new AiUnavailableError();
   return data.text.slice(0, 1500);
 }

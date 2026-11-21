@@ -22,7 +22,12 @@ const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 /** Trim and cut a value to a max length; non-strings become ''. */
 export function cleanText(value, max) {
-  return typeof value === 'string' ? value.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max) : '';
+  return typeof value === 'string'
+    ? value
+        .replace(/[\u0000-\u001f]/g, ' ')
+        .trim()
+        .slice(0, max)
+    : '';
 }
 
 /** Normalise "8:00", "08:00:00", "8" into "08:00" or null. */
@@ -43,7 +48,9 @@ export function sanitizeAiMedicine(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const name = cleanText(raw.name, 80);
   if (!name) return null;
-  const times = [...new Set((Array.isArray(raw.times) ? raw.times : []).map(cleanTime).filter(Boolean))].sort().slice(0, 6);
+  const times = [...new Set((Array.isArray(raw.times) ? raw.times : []).map(cleanTime).filter(Boolean))]
+    .sort()
+    .slice(0, 6);
   const qty = Number(raw.dose_qty);
   const days = Number(raw.duration_days);
   const out = {
@@ -57,7 +64,10 @@ export function sanitizeAiMedicine(raw) {
     duration_days: Number.isInteger(days) && days >= 1 && days <= 365 ? days : null,
     notes: cleanText(raw.notes, 200),
     doctor: cleanText(raw.doctor, 60),
-    slots: [...new Set((Array.isArray(raw.slots) ? raw.slots : []).filter((s) => ROUTINE_SLOTS.includes(s)))].slice(0, 5),
+    slots: [...new Set((Array.isArray(raw.slots) ? raw.slots : []).filter((s) => ROUTINE_SLOTS.includes(s)))].slice(
+      0,
+      5,
+    ),
   };
   if (COLORS.includes(raw.color)) out.color = raw.color;
   if (SHAPES.includes(raw.shape)) out.shape = raw.shape;
@@ -92,8 +102,14 @@ export function validateMedicine(m) {
   if ((m.notes ?? '').length > 200) errors.push('Notes must be under 200 letters.');
   if ((m.kept_at ?? '').length > 60) errors.push('"Kept at" must be under 60 letters.');
   if ((m.doctor ?? '').length > 60) errors.push("Doctor's name must be under 60 letters.");
-  if (m.photo && !DEMO_PHOTO_RE.test(m.photo) && (m.photo.length > PHOTO_MAX || !PHOTO_RE.test(m.photo))) errors.push('That photo could not be used. Try another one.');
-  if (m.slots && (!Array.isArray(m.slots) || m.slots.length !== m.times?.length || m.slots.some((s) => s !== 'custom' && !ROUTINE_SLOTS.includes(s)))) {
+  if (m.photo && !DEMO_PHOTO_RE.test(m.photo) && (m.photo.length > PHOTO_MAX || !PHOTO_RE.test(m.photo)))
+    errors.push('That photo could not be used. Try another one.');
+  if (
+    m.slots &&
+    (!Array.isArray(m.slots) ||
+      m.slots.length !== m.times?.length ||
+      m.slots.some((s) => s !== 'custom' && !ROUTINE_SLOTS.includes(s)))
+  ) {
     errors.push('Times could not be matched to the routine.');
   }
   return errors;

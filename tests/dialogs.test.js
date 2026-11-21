@@ -13,8 +13,12 @@ vi.mock('../js/supabaseClient.js', () => ({
   isSupabaseConfigured: false,
   getAccessToken: vi.fn(async () => 'test-token'),
   getSupabase: vi.fn(async () => null),
-  ensureAnonymousSession: vi.fn(async () => { throw new Error('offline in tests'); }),
-  db: () => { throw new Error('no cloud in tests'); },
+  ensureAnonymousSession: vi.fn(async () => {
+    throw new Error('offline in tests');
+  }),
+  db: () => {
+    throw new Error('no cloud in tests');
+  },
 }));
 
 const { store } = await import('../js/store.js');
@@ -35,12 +39,20 @@ const body = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8').match(/<
 const tick = () => new Promise((r) => setTimeout(r, 0));
 const $ = (sel) => document.querySelector(sel);
 const button = (root, text) => [...root.querySelectorAll('button')].find((b) => b.textContent.includes(text));
-const submit = async (form) => { form.dispatchEvent(new Event('submit', { cancelable: true })); for (let i = 0; i < 6; i += 1) await tick(); };
+const submit = async (form) => {
+  form.dispatchEvent(new Event('submit', { cancelable: true }));
+  for (let i = 0; i < 6; i += 1) await tick();
+};
 
 beforeAll(() => {
   // jsdom has <dialog> elements but not their modal methods.
-  HTMLDialogElement.prototype.showModal = function showModal() { this.open = true; };
-  HTMLDialogElement.prototype.close = function close() { this.open = false; this.dispatchEvent(new Event('close')); };
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close = function close() {
+    this.open = false;
+    this.dispatchEvent(new Event('close'));
+  };
   Element.prototype.scrollIntoView = () => {};
   window.print = vi.fn();
 });
@@ -53,7 +65,10 @@ beforeEach(async () => {
   state.profileId = null;
   await loadAll();
 });
-afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe('add / edit medicine dialog', () => {
   it('Quick fill reads "1-0-1" text offline, then Save adds the medicine', async () => {
@@ -63,7 +78,10 @@ describe('add / edit medicine dialog', () => {
     $('#quick-text').value = 'Telma 40 mg BD after food';
     button(dialog, 'Quick fill').click();
     expect(dialog.querySelector('input[name="name"]').value).toBe('Telma');
-    expect([...dialog.querySelectorAll('input[name="slot"]:checked')].map((i) => i.value)).toEqual(['breakfast', 'dinner']);
+    expect([...dialog.querySelectorAll('input[name="slot"]:checked')].map((i) => i.value)).toEqual([
+      'breakfast',
+      'dinner',
+    ]);
 
     await submit(dialog.querySelector('form'));
     expect(dialog.open).toBe(false);
@@ -109,10 +127,11 @@ describe('Family & safety screen', () => {
   it('shows the reminder check, routine, family and emergency cards', () => {
     const panel = $('#panel-care');
     renderCare(panel);
-    for (const title of ['Reminder check', 'Daily routine', 'Family', 'Emergency']) expect(panel.textContent).toContain(title);
+    for (const title of ['Reminder check', 'Daily routine', 'Family', 'Emergency'])
+      expect(panel.textContent).toContain(title);
   });
 
-  it('the WhatsApp update opens wa.me with today\'s summary', () => {
+  it("the WhatsApp update opens wa.me with today's summary", () => {
     const open = vi.spyOn(window, 'open').mockImplementation(() => null);
     const text = todaySummaryText(state.profiles[0], todayDoses());
     expect(text).toContain('Dadi');
@@ -139,7 +158,13 @@ describe('one-tap mode and print views', () => {
 
 describe('AI client', () => {
   it('sends the session token and re-sanitises what comes back', async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ medicines: [{ name: 'Telma', form: 'potion', times: ['8:00'] }, { dosage: 'no name' }] }), { status: 200 }));
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ medicines: [{ name: 'Telma', form: 'potion', times: ['8:00'] }, { dosage: 'no name' }] }),
+          { status: 200 },
+        ),
+    );
     vi.stubGlobal('fetch', fetchMock);
     const meds = await parseTextWithAi('Telma 40 OD');
     expect(meds).toEqual([expect.objectContaining({ name: 'Telma', form: 'tablet', times: ['08:00'] })]);
@@ -147,7 +172,12 @@ describe('AI client', () => {
   });
 
   it('turns server errors into a friendly AiUnavailableError', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'The AI assistant is busy right now.' }), { status: 503 })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () => new Response(JSON.stringify({ error: 'The AI assistant is busy right now.' }), { status: 503 }),
+      ),
+    );
     await expect(explainWithAi({ name: 'Metformin' }, 'en')).rejects.toThrow(AiUnavailableError);
   });
 });
@@ -156,10 +186,22 @@ describe('voice', () => {
   it('falls back to the browser voice when the voice service is unreachable', async () => {
     const speak = vi.fn();
     vi.stubGlobal('speechSynthesis', { speak, cancel: vi.fn(), getVoices: () => [] });
-    vi.stubGlobal('SpeechSynthesisUtterance', function Utterance(text) { this.text = text; });
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
+    vi.stubGlobal('SpeechSynthesisUtterance', function Utterance(text) {
+      this.text = text;
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('offline');
+      }),
+    );
     vi.spyOn(console, 'info').mockImplementation(() => {});
-    await speakReminder({ name: 'Dadi', language: 'en' }, [{ name: 'Metformin', dose_qty: 1, form: 'tablet', meal: 'after' }], undefined, { force: true });
+    await speakReminder(
+      { name: 'Dadi', language: 'en' },
+      [{ name: 'Metformin', dose_qty: 1, form: 'tablet', meal: 'after' }],
+      undefined,
+      { force: true },
+    );
     expect(speak).toHaveBeenCalledTimes(1);
     expect(speak.mock.calls[0][0].text).toContain('Metformin');
   });

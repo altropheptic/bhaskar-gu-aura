@@ -16,7 +16,10 @@ const failed = () => showBanner('error', 'Could not open that. Please check your
  * @param {() => Promise<any>} load
  * @param {string} name  export to call
  */
-const onDemand = (load, name) => (...args) => load().then((m) => m[name](...args), failed);
+const onDemand =
+  (load, name) =>
+  (...args) =>
+    load().then((m) => m[name](...args), failed);
 
 const medForm = () => import('./medForm.js');
 const profileDialog = () => import('./profileDialog.js');
@@ -42,5 +45,7 @@ export function prefetchScreens() {
   if (warmed) return;
   warmed = true;
   const idle = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 1500));
-  idle(() => { [medForm, profileDialog, oneTap, reports, ai].forEach((load) => load().catch(() => {})); });
+  idle(() => {
+    [medForm, profileDialog, oneTap, reports, ai].forEach((load) => load().catch(() => {}));
+  });
 }

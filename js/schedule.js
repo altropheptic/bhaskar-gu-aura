@@ -113,7 +113,10 @@ export function findLog(dose, logIndex) {
     if (times.includes(time)) continue; // matches a current dose exactly: not an orphan
     const diff = Math.abs(minutesOf(time) - minutesOf(dose.time));
     if (diff > RETIME_WINDOW_MIN || diff >= bestDiff) continue;
-    const nearest = times.reduce((a, t) => (Math.abs(minutesOf(t) - minutesOf(time)) < Math.abs(minutesOf(a) - minutesOf(time)) ? t : a), times[0]);
+    const nearest = times.reduce(
+      (a, t) => (Math.abs(minutesOf(t) - minutesOf(time)) < Math.abs(minutesOf(a) - minutesOf(time)) ? t : a),
+      times[0],
+    );
     if (nearest !== dose.time) continue;
     best = log;
     bestDiff = diff;
@@ -205,10 +208,12 @@ export function streak(medicines, logIndex, now = new Date(), maxDays = 60) {
 
 /** Per-medicine adherence % over `days`. */
 export function perMedicine(medicines, logIndex, days = 14, now = new Date()) {
-  return medicines.filter((m) => m.active).map((med) => {
-    const pct = adherence([med], logIndex, days, now);
-    return { med, pct };
-  });
+  return medicines
+    .filter((m) => m.active)
+    .map((med) => {
+      const pct = adherence([med], logIndex, days, now);
+      return { med, pct };
+    });
 }
 
 /** How many days the current stock lasts, or null when stock isn't tracked. */
@@ -221,7 +226,10 @@ export function daysOfSupply(med) {
 
 /** Normalise a generic name for duplicate detection ("Paracetamol 500" -> "paracetamol"). */
 function genericKey(med) {
-  const raw = (med.generic_name || '').toLowerCase().replace(/[^a-z ]/g, ' ').trim();
+  const raw = (med.generic_name || '')
+    .toLowerCase()
+    .replace(/[^a-z ]/g, ' ')
+    .trim();
   return raw.split(/\s+/)[0] || '';
 }
 

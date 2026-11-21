@@ -6,16 +6,53 @@
  * same shapes, so the views never know (or care) where data lives.
  */
 
-export const PROFILE_COLS = ['name', 'age', 'language', 'blood_group', 'allergies', 'conditions', 'emergency_name', 'emergency_phone',
-  'wake_time', 'breakfast_time', 'lunch_time', 'dinner_time', 'bed_time'];
-export const MEDICINE_COLS = ['profile_id', 'name', 'generic_name', 'dosage', 'form', 'color', 'shape', 'meal', 'times', 'slots', 'days', 'dose_qty',
-  'stock', 'refill_at', 'start_date', 'end_date', 'active', 'notes', 'kept_at', 'doctor', 'photo'];
+export const PROFILE_COLS = [
+  'name',
+  'age',
+  'language',
+  'blood_group',
+  'allergies',
+  'conditions',
+  'emergency_name',
+  'emergency_phone',
+  'wake_time',
+  'breakfast_time',
+  'lunch_time',
+  'dinner_time',
+  'bed_time',
+];
+export const MEDICINE_COLS = [
+  'profile_id',
+  'name',
+  'generic_name',
+  'dosage',
+  'form',
+  'color',
+  'shape',
+  'meal',
+  'times',
+  'slots',
+  'days',
+  'dose_qty',
+  'stock',
+  'refill_at',
+  'start_date',
+  'end_date',
+  'active',
+  'notes',
+  'kept_at',
+  'doctor',
+  'photo',
+];
 
 export const LOG_COLS = ['id', 'medicine_id', 'scheduled_for', 'status', 'logged_at'];
 
 /** Thrown when a scheduled dose has already been logged (the double-dose guard). */
 export class DuplicateDoseError extends Error {
-  constructor() { super('This dose is already logged'); this.name = 'DuplicateDoseError'; }
+  constructor() {
+    super('This dose is already logged');
+    this.name = 'DuplicateDoseError';
+  }
 }
 
 /** Keep only known columns, so stray fields never reach the database. */

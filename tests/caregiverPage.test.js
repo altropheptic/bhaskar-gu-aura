@@ -13,16 +13,42 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 let requestedUrl = '';
 
 beforeAll(async () => {
-  document.body.innerHTML = readFileSync(resolve(process.cwd(), 'caregiver.html'), 'utf8').match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
+  document.body.innerHTML = readFileSync(resolve(process.cwd(), 'caregiver.html'), 'utf8').match(
+    /<body[^>]*>([\s\S]*)<\/body>/,
+  )[1];
   const now = new Date();
   const earlier = new Date(now.getTime() - 3 * 3600_000); // 3 hours ago: missed if not logged
   const time = `${String(earlier.getHours()).padStart(2, '0')}:${String(earlier.getMinutes()).padStart(2, '0')}`;
-  const fetchMock = vi.fn(async (url) => { requestedUrl = String(url); return new Response(JSON.stringify({
-    profile: { name: 'Dadi', language: 'hi' },
-    medicines: [{ id: 'm1', name: 'Metformin', dosage: '500 mg', form: 'tablet', color: 'white', shape: 'round', meal: 'after', times: [`${time}:00`], days: [0, 1, 2, 3, 4, 5, 6], dose_qty: 1, start_date: '2020-01-01', end_date: null, active: true, stock: 2, refill_at: 5 }],
-    logs: [],
-    generated_at: now.toISOString(),
-  }), { status: 200, headers: { 'content-type': 'application/json' } }); });
+  const fetchMock = vi.fn(async (url) => {
+    requestedUrl = String(url);
+    return new Response(
+      JSON.stringify({
+        profile: { name: 'Dadi', language: 'hi' },
+        medicines: [
+          {
+            id: 'm1',
+            name: 'Metformin',
+            dosage: '500 mg',
+            form: 'tablet',
+            color: 'white',
+            shape: 'round',
+            meal: 'after',
+            times: [`${time}:00`],
+            days: [0, 1, 2, 3, 4, 5, 6],
+            dose_qty: 1,
+            start_date: '2020-01-01',
+            end_date: null,
+            active: true,
+            stock: 2,
+            refill_at: 5,
+          },
+        ],
+        logs: [],
+        generated_at: now.toISOString(),
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    );
+  });
   vi.stubGlobal('fetch', fetchMock);
   await import('../js/caregiver.js');
   await wait(50);

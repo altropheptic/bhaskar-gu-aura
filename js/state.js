@@ -23,8 +23,13 @@ export const state = {
 
 const listeners = new Set();
 /** @param {(s: typeof state) => void} fn */
-export function subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); }
-export function emit() { for (const fn of listeners) fn(state); }
+export function subscribe(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+export function emit() {
+  for (const fn of listeners) fn(state);
+}
 
 /** The selected person. */
 export const currentProfile = () => state.profiles.find((p) => p.id === state.profileId) ?? null;
@@ -33,9 +38,17 @@ export const currentProfile = () => state.profiles.find((p) => p.id === state.pr
 export async function loadAll() {
   state.profiles = await store.listProfiles();
   let remembered = null;
-  try { remembered = localStorage.getItem(PROFILE_KEY); } catch { /* blocked storage */ }
+  try {
+    remembered = localStorage.getItem(PROFILE_KEY);
+  } catch {
+    /* blocked storage */
+  }
   const ids = state.profiles.map((p) => p.id);
-  state.profileId = ids.includes(state.profileId) ? state.profileId : ids.includes(remembered) ? remembered : ids[0] ?? null;
+  state.profileId = ids.includes(state.profileId)
+    ? state.profileId
+    : ids.includes(remembered)
+      ? remembered
+      : (ids[0] ?? null);
   await loadProfileData();
 }
 
@@ -48,7 +61,10 @@ export async function loadProfileData() {
   }
   state.medicines = await store.listMedicines(state.profileId);
   const since = addDays(startOfDay(new Date()), -30).toISOString();
-  state.logs = await store.listLogs(state.medicines.map((m) => m.id), since);
+  state.logs = await store.listLogs(
+    state.medicines.map((m) => m.id),
+    since,
+  );
   state.logIndex = indexLogs(state.logs);
   state.links = store.mode === 'cloud' ? await store.listLinks(state.profileId).catch(() => []) : [];
   emit();
@@ -57,7 +73,11 @@ export async function loadProfileData() {
 /** @param {string} id */
 export async function selectProfile(id) {
   state.profileId = id;
-  try { localStorage.setItem(PROFILE_KEY, id); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(PROFILE_KEY, id);
+  } catch {
+    /* ignore */
+  }
   await loadProfileData();
 }
 
@@ -74,7 +94,10 @@ export async function saveProfile(profile) {
     const routine = routineOf({ ...saved, ...profile });
     for (const med of await store.listMedicines(profile.id)) {
       const next = retime(med, routine);
-      if (next) { await store.saveMedicine({ id: med.id, ...next }); retimed += 1; }
+      if (next) {
+        await store.saveMedicine({ id: med.id, ...next });
+        retimed += 1;
+      }
     }
   }
   await loadAll();

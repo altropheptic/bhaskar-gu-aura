@@ -31,7 +31,9 @@ describe('Today screen', () => {
     const panel = document.getElementById('panel');
     renderToday(panel);
     expect(panel.querySelector('h1, h2')?.textContent).toMatch(/Today/);
-    expect(panel.querySelectorAll('.week button, .week [role="button"], .week a, .week li').length).toBeGreaterThanOrEqual(7);
+    expect(
+      panel.querySelectorAll('.week button, .week [role="button"], .week a, .week li').length,
+    ).toBeGreaterThanOrEqual(7);
     expect(panel.querySelector('.next')).not.toBeNull();
   });
 
@@ -51,7 +53,8 @@ describe('Today screen', () => {
     const take = [...panel.querySelectorAll('button')].find((b) => /Took it|Taken/.test(b.textContent));
     if (!take) return; // nothing due at this moment of the day
     take.click();
-    await flush(); await flush();
+    await flush();
+    await flush();
     expect(state.logs.length).toBe(before + 1);
   });
 });

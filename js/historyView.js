@@ -38,7 +38,11 @@ export function renderHistory(panel) {
   const now = new Date();
   const head = el('div', { className: 'panel-head' }, [
     el('div', {}, [el('h2', { text: 'Progress' }), el('p', { text: `Last 14 days · ${profile?.name ?? ''}` })]),
-    el('button', { className: 'btn btn--outline', attrs: { type: 'button' }, on: { click: () => printDoctorReport() } }, [icon('print'), 'Doctor report']),
+    el(
+      'button',
+      { className: 'btn btn--outline', attrs: { type: 'button' }, on: { click: () => printDoctorReport() } },
+      [icon('print'), 'Doctor report'],
+    ),
   ]);
   if (!state.medicines.length) {
     panel.replaceChildren(head, el('div', { className: 'card' }, [emptyState('No medicines yet.')]));
@@ -56,9 +60,17 @@ export function renderHistory(panel) {
     }
   }
 
-  const stat = (value, label) => el('div', { className: 'stat' }, [el('p', { className: 'stat__value tabular', text: value }), el('p', { className: 'stat__label', text: label })]);
+  const stat = (value, label) =>
+    el('div', { className: 'stat' }, [
+      el('p', { className: 'stat__value tabular', text: value }),
+      el('p', { className: 'stat__label', text: label }),
+    ]);
   // Hero: one big ring for this week, then the supporting numbers.
-  const bigRing = el('div', { className: 'ring ring--lg', attrs: { role: 'img', 'aria-label': `${week ?? 0}% of doses taken this week` } }, [el('span', { className: 'tabular', text: week === null ? '–' : `${week}%` })]);
+  const bigRing = el(
+    'div',
+    { className: 'ring ring--lg', attrs: { role: 'img', 'aria-label': `${week ?? 0}% of doses taken this week` } },
+    [el('span', { className: 'tabular', text: week === null ? '–' : `${week}%` })],
+  );
   bigRing.style.setProperty('--p', String(week ?? 0));
   const stats = el('div', { className: 'prog-hero' }, [
     el('section', { className: 'card prog-ring' }, [
@@ -76,29 +88,66 @@ export function renderHistory(panel) {
     ]),
   ]);
 
-  const badgeDefs = [[3, '3-day streak'], [7, 'Perfect week'], [14, 'Two strong weeks'], [30, 'Month of care']];
-  const badges = el('div', { className: 'badges', attrs: { 'aria-label': 'Streak badges' } }, badgeDefs.map(([n, label]) => el('span', {
-    className: `badge${days >= n ? ' badge--earned' : ''}`,
-    text: label,
-    attrs: { 'aria-label': `${label}: ${days >= n ? 'earned' : 'not yet earned'}` },
-  })));
+  const badgeDefs = [
+    [3, '3-day streak'],
+    [7, 'Perfect week'],
+    [14, 'Two strong weeks'],
+    [30, 'Month of care'],
+  ];
+  const badges = el(
+    'div',
+    { className: 'badges', attrs: { 'aria-label': 'Streak badges' } },
+    badgeDefs.map(([n, label]) =>
+      el('span', {
+        className: `badge${days >= n ? ' badge--earned' : ''}`,
+        text: label,
+        attrs: { 'aria-label': `${label}: ${days >= n ? 'earned' : 'not yet earned'}` },
+      }),
+    ),
+  );
 
   // 14-day grid: rows = medicines, columns = days (oldest -> today)
   const dayList = Array.from({ length: DAYS_SHOWN }, (_, i) => addDays(startOfDay(now), i - DAYS_SHOWN + 1));
   const meds = state.medicines.filter((m) => m.active);
   const table = el('table', { className: 'adherence-grid' }, [
     el('caption', { className: 'visually-hidden', text: 'Doses taken per medicine per day, last 14 days' }),
-    el('thead', {}, [el('tr', {}, [
-      el('th', { text: 'Medicine', attrs: { scope: 'col' } }),
-      ...dayList.map((d) => el('th', { text: d.toLocaleDateString([], { day: 'numeric' }), attrs: { scope: 'col', title: d.toDateString() } })),
-    ])]),
-    el('tbody', {}, meds.map((med) => el('tr', {}, [
-      el('th', { text: med.name, attrs: { scope: 'row' } }),
-      ...dayList.map((d) => {
-        const c = cellFor(med, d, now);
-        return el('td', {}, [el('span', { className: `cell ${c.cls}`, attrs: { title: `${d.toDateString()}: ${c.label}`, 'aria-label': `${d.toDateString()}: ${c.label}`, role: 'img' } }, [c.mark ? icon(c.mark) : ''])]);
-      }),
-    ]))),
+    el('thead', {}, [
+      el('tr', {}, [
+        el('th', { text: 'Medicine', attrs: { scope: 'col' } }),
+        ...dayList.map((d) =>
+          el('th', {
+            text: d.toLocaleDateString([], { day: 'numeric' }),
+            attrs: { scope: 'col', title: d.toDateString() },
+          }),
+        ),
+      ]),
+    ]),
+    el(
+      'tbody',
+      {},
+      meds.map((med) =>
+        el('tr', {}, [
+          el('th', { text: med.name, attrs: { scope: 'row' } }),
+          ...dayList.map((d) => {
+            const c = cellFor(med, d, now);
+            return el('td', {}, [
+              el(
+                'span',
+                {
+                  className: `cell ${c.cls}`,
+                  attrs: {
+                    title: `${d.toDateString()}: ${c.label}`,
+                    'aria-label': `${d.toDateString()}: ${c.label}`,
+                    role: 'img',
+                  },
+                },
+                [c.mark ? icon(c.mark) : ''],
+              ),
+            ]);
+          }),
+        ]),
+      ),
+    ),
   ]);
   const legend = el('div', { className: 'legend' }, [
     el('span', {}, [el('span', { className: 'cell cell--full' }, [icon('check')]), 'All taken']),
@@ -107,19 +156,30 @@ export function renderHistory(panel) {
     el('span', {}, [el('span', { className: 'cell' }), 'None due']),
   ]);
 
-  const perMed = el('ul', { className: 'per-med' }, perMedicine(state.medicines, state.logIndex, 14, now).map(({ med, pct }) => {
-    const bar = el('span');
-    bar.style.width = `${pct ?? 0}%`;
-    return el('li', {}, [
-      el('div', { className: 'per-med__head' }, [el('span', { text: med.name }), el('span', { className: 'tabular', text: pct === null ? '–' : `${pct}%` })]),
-      el('div', { className: 'bar', attrs: { role: 'img', 'aria-label': `${med.name}: ${pct ?? 0}% taken` } }, [bar]),
-    ]);
-  }));
+  const perMed = el(
+    'ul',
+    { className: 'per-med' },
+    perMedicine(state.medicines, state.logIndex, 14, now).map(({ med, pct }) => {
+      const bar = el('span');
+      bar.style.width = `${pct ?? 0}%`;
+      return el('li', {}, [
+        el('div', { className: 'per-med__head' }, [
+          el('span', { text: med.name }),
+          el('span', { className: 'tabular', text: pct === null ? '–' : `${pct}%` }),
+        ]),
+        el('div', { className: 'bar', attrs: { role: 'img', 'aria-label': `${med.name}: ${pct ?? 0}% taken` } }, [bar]),
+      ]);
+    }),
+  );
 
   panel.replaceChildren(
     head,
     stats,
-    el('section', { className: 'card' }, [el('h3', { text: 'Day by day' }), el('div', { className: 'grid-wrap' }, [table]), legend]),
+    el('section', { className: 'card' }, [
+      el('h3', { text: 'Day by day' }),
+      el('div', { className: 'grid-wrap' }, [table]),
+      legend,
+    ]),
     el('div', { className: 'grid-2' }, [
       el('section', { className: 'card' }, [el('h3', { text: 'By medicine' }), perMed]),
       el('section', { className: 'card' }, [el('h3', { text: 'Badges' }), badges]),

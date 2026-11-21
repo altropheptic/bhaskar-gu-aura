@@ -17,10 +17,13 @@ function validate(p) {
   if (p.age !== null && !(Number.isInteger(p.age) && p.age >= 0 && p.age <= 120)) errors.push('Age must be 0–120.');
   if (!['en', 'hi'].includes(p.language)) errors.push('Choose a language.');
   if (p.blood_group && !BLOOD.includes(p.blood_group)) errors.push('Choose a valid blood group.');
-  if ((p.allergies ?? '').length > 200 || (p.conditions ?? '').length > 200) errors.push('Allergies and conditions must be under 200 letters.');
+  if ((p.allergies ?? '').length > 200 || (p.conditions ?? '').length > 200)
+    errors.push('Allergies and conditions must be under 200 letters.');
   if ((p.emergency_name ?? '').length > 40) errors.push('Contact name is too long.');
-  if (p.emergency_phone && !/^[0-9+ -]{0,20}$/.test(p.emergency_phone)) errors.push('Phone can only contain digits, spaces, + and -.');
-  if (Object.values(ROUTINE_FIELDS).some((k) => !/^([01]\d|2[0-3]):[0-5]\d$/.test(p[k] ?? ''))) errors.push('Fill in every routine time.');
+  if (p.emergency_phone && !/^[0-9+ -]{0,20}$/.test(p.emergency_phone))
+    errors.push('Phone can only contain digits, spaces, + and -.');
+  if (Object.values(ROUTINE_FIELDS).some((k) => !/^([01]\d|2[0-3]):[0-5]\d$/.test(p[k] ?? '')))
+    errors.push('Fill in every routine time.');
   return errors;
 }
 
@@ -30,7 +33,17 @@ function validate(p) {
  */
 export function openProfileDialog(existing, { onSaved } = {}) {
   const dialog = /** @type {HTMLDialogElement} */ (document.getElementById('profile-dialog'));
-  const p = existing ?? { name: '', age: null, language: 'en', blood_group: '', allergies: '', conditions: '', emergency_name: '', emergency_phone: '', ...DEFAULT_ROUTINE };
+  const p = existing ?? {
+    name: '',
+    age: null,
+    language: 'en',
+    blood_group: '',
+    allergies: '',
+    conditions: '',
+    emergency_name: '',
+    emergency_phone: '',
+    ...DEFAULT_ROUTINE,
+  };
   const routine = routineOf(p);
   const body = openDialog(dialog, existing ? `Edit ${existing.name}` : 'Add a person', 'profile-title');
 
@@ -43,7 +56,11 @@ export function openProfileDialog(existing, { onSaved } = {}) {
     ]);
   };
   const errorBox = el('div', { attrs: { role: 'alert' } });
-  const saveBtn = el('button', { className: 'btn btn--primary btn--xl', text: existing ? 'Save' : 'Continue', attrs: { type: 'submit' } });
+  const saveBtn = el('button', {
+    className: 'btn btn--primary btn--xl',
+    text: existing ? 'Save' : 'Continue',
+    attrs: { type: 'submit' },
+  });
 
   const form = el('form', { attrs: { novalidate: true } }, [
     input('name', 'Name', { maxlength: 40, required: true, placeholder: 'Dadi, Papa, Mrs. Das' }),
@@ -60,17 +77,37 @@ export function openProfileDialog(existing, { onSaved } = {}) {
     el('fieldset', {}, [
       el('legend', { text: 'Daily routine' }),
       el('p', { className: 'field__hint', text: 'Doses follow these times, e.g. "after breakfast".' }),
-      el('div', { className: 'routine-grid' }, SLOTS.map((s) => el('div', { className: 'field' }, [
-        el('label', { text: SLOT_LABEL[s], attrs: { for: `pf-${s}` } }),
-        el('input', { attrs: { id: `pf-${s}`, name: ROUTINE_FIELDS[s], type: 'time', value: routine[ROUTINE_FIELDS[s]], required: true } }),
-      ]))),
+      el(
+        'div',
+        { className: 'routine-grid' },
+        SLOTS.map((s) =>
+          el('div', { className: 'field' }, [
+            el('label', { text: SLOT_LABEL[s], attrs: { for: `pf-${s}` } }),
+            el('input', {
+              attrs: {
+                id: `pf-${s}`,
+                name: ROUTINE_FIELDS[s],
+                type: 'time',
+                value: routine[ROUTINE_FIELDS[s]],
+                required: true,
+              },
+            }),
+          ]),
+        ),
+      ),
     ]),
     el('details', { attrs: { open: Boolean(existing) } }, [
       el('summary', { text: 'Emergency details (optional)' }),
       el('div', { className: 'field-grid' }, [
         el('div', { className: 'field' }, [
           el('label', { text: 'Blood group', attrs: { for: 'pf-blood' } }),
-          el('select', { attrs: { id: 'pf-blood', name: 'blood_group' } }, BLOOD.map((b) => el('option', { text: b || 'Not known', attrs: { value: b, selected: (p.blood_group ?? '') === b } }))),
+          el(
+            'select',
+            { attrs: { id: 'pf-blood', name: 'blood_group' } },
+            BLOOD.map((b) =>
+              el('option', { text: b || 'Not known', attrs: { value: b, selected: (p.blood_group ?? '') === b } }),
+            ),
+          ),
         ]),
         input('emergency_phone', 'Emergency phone', { maxlength: 20, inputmode: 'tel', type: 'tel' }),
       ]),
@@ -80,18 +117,27 @@ export function openProfileDialog(existing, { onSaved } = {}) {
     ]),
     errorBox,
     el('div', { className: 'dialog__foot' }, [
-      existing && state.profiles.length > 1 && el('button', {
-        className: 'btn btn--danger', text: 'Remove person', attrs: { type: 'button' },
-        on: {
-          click: async () => {
-            if (!window.confirm(`Remove ${existing.name} and all their medicines? This cannot be undone.`)) return;
-            await deleteProfile(existing.id);
-            dialog.close();
-            toast(`${existing.name} removed.`);
+      existing &&
+        state.profiles.length > 1 &&
+        el('button', {
+          className: 'btn btn--danger',
+          text: 'Remove person',
+          attrs: { type: 'button' },
+          on: {
+            click: async () => {
+              if (!window.confirm(`Remove ${existing.name} and all their medicines? This cannot be undone.`)) return;
+              await deleteProfile(existing.id);
+              dialog.close();
+              toast(`${existing.name} removed.`);
+            },
           },
-        },
+        }),
+      el('button', {
+        className: 'btn btn--ghost',
+        text: 'Cancel',
+        attrs: { type: 'button' },
+        on: { click: () => dialog.close() },
       }),
-      el('button', { className: 'btn btn--ghost', text: 'Cancel', attrs: { type: 'button' }, on: { click: () => dialog.close() } }),
       saveBtn,
     ]),
   ]);
@@ -114,7 +160,15 @@ export function openProfileDialog(existing, { onSaved } = {}) {
     };
     const errors = validate(profile);
     if (errors.length) {
-      errorBox.replaceChildren(el('div', { className: 'banner banner--error' }, [el('ul', {}, errors.map((t) => el('li', { text: t })))]));
+      errorBox.replaceChildren(
+        el('div', { className: 'banner banner--error' }, [
+          el(
+            'ul',
+            {},
+            errors.map((t) => el('li', { text: t })),
+          ),
+        ]),
+      );
       return;
     }
     setLoading(saveBtn, true, 'Saving…');

@@ -34,8 +34,11 @@ export async function GET(request) {
 
     const [{ data: profile }, { data: medicines }] = await Promise.all([
       db.from('profiles').select('name, language').eq('id', link.profile_id).single(),
-      db.from('medicines')
-        .select('id, name, dosage, form, color, shape, meal, times, days, dose_qty, start_date, end_date, active, stock, refill_at')
+      db
+        .from('medicines')
+        .select(
+          'id, name, dosage, form, color, shape, meal, times, days, dose_qty, start_date, end_date, active, stock, refill_at',
+        )
         .eq('profile_id', link.profile_id)
         .eq('active', true),
     ]);
@@ -44,7 +47,11 @@ export async function GET(request) {
     const ids = (medicines ?? []).map((m) => m.id);
     const since = new Date(Date.now() - 48 * 3600_000).toISOString();
     const { data: logs } = ids.length
-      ? await db.from('dose_logs').select('medicine_id, scheduled_for, status, logged_at').in('medicine_id', ids).gte('scheduled_for', since)
+      ? await db
+          .from('dose_logs')
+          .select('medicine_id, scheduled_for, status, logged_at')
+          .in('medicine_id', ids)
+          .gte('scheduled_for', since)
       : { data: [] };
 
     return json({ profile, medicines: medicines ?? [], logs: logs ?? [], generated_at: new Date().toISOString() });

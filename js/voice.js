@@ -22,8 +22,9 @@ function speakWithBrowser(text, lang) {
   utter.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
   utter.rate = 0.9;
   const voices = speechSynthesis.getVoices();
-  const match = voices.find((v) => v.lang?.toLowerCase().startsWith(lang === 'hi' ? 'hi' : 'en-in'))
-    ?? voices.find((v) => v.lang?.toLowerCase().startsWith(lang));
+  const match =
+    voices.find((v) => v.lang?.toLowerCase().startsWith(lang === 'hi' ? 'hi' : 'en-in')) ??
+    voices.find((v) => v.lang?.toLowerCase().startsWith(lang));
   if (match) utter.voice = match;
   speechSynthesis.cancel();
   speechSynthesis.speak(utter);
@@ -61,7 +62,10 @@ export async function speakReminder(profile, meds, button, { force = false } = {
     lang,
     person: (profile?.name ?? '').slice(0, 40),
     medicines: meds.slice(0, 3).map((m) => ({
-      name: m.name.slice(0, 60), qty: Number(m.dose_qty) || 1, form: m.form, meal: m.meal,
+      name: m.name.slice(0, 60),
+      qty: Number(m.dose_qty) || 1,
+      form: m.form,
+      meal: m.meal,
       ...(m.kept_at ? { place: m.kept_at.slice(0, 60) } : {}),
     })),
   };

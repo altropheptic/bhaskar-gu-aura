@@ -16,7 +16,10 @@ const esc = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace
 function fold(line) {
   const out = [];
   let rest = line;
-  while (rest.length > 74) { out.push(rest.slice(0, 74)); rest = ` ${rest.slice(74)}`; }
+  while (rest.length > 74) {
+    out.push(rest.slice(0, 74));
+    rest = ` ${rest.slice(74)}`;
+  }
   out.push(rest);
   return out.join('\r\n');
 }
@@ -29,12 +32,28 @@ const compactDate = (iso) => iso.replaceAll('-', '');
  * @param {any[]} medicines
  */
 export function buildIcs(profile, medicines) {
-  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Dawai Dost//Medicine reminders//EN', 'CALSCALE:GREGORIAN', `X-WR-CALNAME:${esc(`Medicines · ${profile.name}`)}`];
+  const stamp = new Date()
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}/, '');
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Dawai Dost//Medicine reminders//EN',
+    'CALSCALE:GREGORIAN',
+    `X-WR-CALNAME:${esc(`Medicines · ${profile.name}`)}`,
+  ];
   for (const med of medicines.filter((m) => m.active)) {
     for (const time of med.times) {
       const title = `${med.name}${med.dosage ? ` ${med.dosage}` : ''} · ${doseLabel(med)}`;
-      const rule = [`FREQ=WEEKLY`, `BYDAY=${med.days.slice().sort().map((d) => DAY_CODE[d]).join(',')}`];
+      const rule = [
+        `FREQ=WEEKLY`,
+        `BYDAY=${med.days
+          .slice()
+          .sort()
+          .map((d) => DAY_CODE[d])
+          .join(',')}`,
+      ];
       if (med.end_date) rule.push(`UNTIL=${compactDate(med.end_date)}T235959`);
       lines.push(
         'BEGIN:VEVENT',
@@ -60,16 +79,25 @@ export function buildIcs(profile, medicines) {
 
 const icsKey = (profile) => `dawai-dost-ics-${profile?.id ?? 'none'}`;
 /** Fingerprint of everything that affects alarms. */
-const fingerprint = (medicines) => JSON.stringify(medicines.filter((m) => m.active).map((m) => [m.id, m.times, m.days, m.start_date, m.end_date]));
+const fingerprint = (medicines) =>
+  JSON.stringify(medicines.filter((m) => m.active).map((m) => [m.id, m.times, m.days, m.start_date, m.end_date]));
 
 /** True when the last downloaded calendar file still matches the schedule. */
 export function icsIsCurrent(profile, medicines) {
-  try { return localStorage.getItem(icsKey(profile)) === fingerprint(medicines); } catch { return false; }
+  try {
+    return localStorage.getItem(icsKey(profile)) === fingerprint(medicines);
+  } catch {
+    return false;
+  }
 }
 
 /** Download the .ics file. */
 export function downloadIcs(profile, medicines) {
-  try { localStorage.setItem(icsKey(profile), fingerprint(medicines)); } catch { /* storage blocked */ }
+  try {
+    localStorage.setItem(icsKey(profile), fingerprint(medicines));
+  } catch {
+    /* storage blocked */
+  }
   const blob = new Blob([buildIcs(profile, medicines)], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

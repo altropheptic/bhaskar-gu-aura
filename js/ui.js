@@ -55,7 +55,9 @@ export function icon(name, className = '') {
  */
 export function pillIcon(med) {
   const shape = ['round', 'oval', 'capsule', 'liquid', 'other'].includes(med.shape) ? med.shape : 'round';
-  const color = ['white', 'yellow', 'orange', 'pink', 'red', 'blue', 'green', 'brown'].includes(med.color) ? med.color : 'white';
+  const color = ['white', 'yellow', 'orange', 'pink', 'red', 'blue', 'green', 'brown'].includes(med.color)
+    ? med.color
+    : 'white';
   return icon(`pill-${shape}`, `pill pill--${color}`);
 }
 
@@ -69,11 +71,19 @@ export function showBanner(type, message, { sticky = false, id } = {}) {
   const region = document.getElementById('banner-region');
   if (!region) return;
   if (id) region.querySelector(`[data-banner-id="${id}"]`)?.remove();
-  const close = el('button', { className: 'banner__close', text: '×', attrs: { type: 'button', 'aria-label': 'Dismiss message' } });
-  const banner = el('div', {
-    className: `banner banner--${type}`,
-    attrs: { role: type === 'error' ? 'alert' : 'status', 'data-banner-id': id ?? false },
-  }, [el('p', { text: message }), close]);
+  const close = el('button', {
+    className: 'banner__close',
+    text: '×',
+    attrs: { type: 'button', 'aria-label': 'Dismiss message' },
+  });
+  const banner = el(
+    'div',
+    {
+      className: `banner banner--${type}`,
+      attrs: { role: type === 'error' ? 'alert' : 'status', 'data-banner-id': id ?? false },
+    },
+    [el('p', { text: message }), close],
+  );
   close.addEventListener('click', () => banner.remove());
   region.append(banner);
   if (!sticky && type !== 'error') setTimeout(() => banner.remove(), 7000);
@@ -95,11 +105,18 @@ export function toast(message, action) {
   clearTimeout(toastTimer);
   const node = el('div', { className: 'toast', attrs: { role: 'status' } }, [el('span', { text: message })]);
   if (action) {
-    node.append(el('button', {
-      text: action.label,
-      attrs: { type: 'button' },
-      on: { click: () => { node.remove(); action.onClick(); } },
-    }));
+    node.append(
+      el('button', {
+        text: action.label,
+        attrs: { type: 'button' },
+        on: {
+          click: () => {
+            node.remove();
+            action.onClick();
+          },
+        },
+      }),
+    );
   }
   document.body.append(node);
   toastTimer = window.setTimeout(() => node.remove(), action ? 8000 : 4000);
@@ -116,7 +133,10 @@ export function setLoading(button, isLoading, loadingText = 'Working…') {
     button.dataset.label = button.textContent ?? '';
     button.disabled = true;
     button.setAttribute('aria-busy', 'true');
-    button.replaceChildren(el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true' } }), document.createTextNode(` ${loadingText}`));
+    button.replaceChildren(
+      el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true' } }),
+      document.createTextNode(` ${loadingText}`),
+    );
   } else {
     button.disabled = false;
     button.removeAttribute('aria-busy');
@@ -132,16 +152,22 @@ export function setLoading(button, isLoading, loadingText = 'Working…') {
  * @returns {HTMLElement} body container
  */
 export function openDialog(dialog, title, titleId) {
-  const close = el('button', {
-    className: 'dialog__close',
-    attrs: { type: 'button', 'aria-label': 'Close' },
-    on: { click: () => dialog.close() },
-  }, [icon('cross')]);
+  const close = el(
+    'button',
+    {
+      className: 'dialog__close',
+      attrs: { type: 'button', 'aria-label': 'Close' },
+      on: { click: () => dialog.close() },
+    },
+    [icon('cross')],
+  );
   const body = el('div');
-  dialog.replaceChildren(el('div', { className: 'dialog__inner' }, [
-    el('div', { className: 'dialog__head' }, [el('h2', { text: title, attrs: { id: titleId } }), close]),
-    body,
-  ]));
+  dialog.replaceChildren(
+    el('div', { className: 'dialog__inner' }, [
+      el('div', { className: 'dialog__head' }, [el('h2', { text: title, attrs: { id: titleId } }), close]),
+      body,
+    ]),
+  );
   if (!dialog.open) dialog.showModal();
   return body;
 }
@@ -154,7 +180,13 @@ export function openDialog(dialog, title, titleId) {
 export function emptyState(message, action) {
   return el('div', { className: 'empty-state' }, [
     el('p', { text: message }),
-    action && el('button', { className: 'btn btn--primary', text: action.label, attrs: { type: 'button' }, on: { click: action.onClick } }),
+    action &&
+      el('button', {
+        className: 'btn btn--primary',
+        text: action.label,
+        attrs: { type: 'button' },
+        on: { click: action.onClick },
+      }),
   ]);
 }
 
@@ -173,7 +205,15 @@ export function formatClock(value) {
 
 /** Human labels shared by several views. */
 export const MEAL_LABEL = { before: 'Before food', after: 'After food', with: 'With food', any: 'Any time' };
-export const FORM_UNIT = { tablet: 'tablet', capsule: 'capsule', syrup: 'ml', injection: 'injection', drops: 'drops', inhaler: 'puff', other: 'dose' };
+export const FORM_UNIT = {
+  tablet: 'tablet',
+  capsule: 'capsule',
+  syrup: 'ml',
+  injection: 'injection',
+  drops: 'drops',
+  inhaler: 'puff',
+  other: 'dose',
+};
 
 /** "1 tablet", "2 tablets", "5 ml". @param {{ dose_qty: number, form: string }} med */
 export function doseLabel(med) {

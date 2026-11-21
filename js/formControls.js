@@ -47,11 +47,17 @@ export function fieldset(legend, ...children) {
  * @param {(option: string) => Node} [iconFor]
  */
 export function seg(name, options, labels, value, iconFor) {
-  return el('div', { className: 'seg', attrs: { role: 'radiogroup' } }, options.map((o) => el('label', {}, [
-    el('input', { attrs: { type: 'radio', name, value: o, checked: o === value } }),
-    iconFor ? iconFor(o) : null,
-    labels[o] ?? o,
-  ])));
+  return el(
+    'div',
+    { className: 'seg', attrs: { role: 'radiogroup' } },
+    options.map((o) =>
+      el('label', {}, [
+        el('input', { attrs: { type: 'radio', name, value: o, checked: o === value } }),
+        iconFor ? iconFor(o) : null,
+        labels[o] ?? o,
+      ]),
+    ),
+  );
 }
 
 /**
@@ -62,9 +68,20 @@ export function seg(name, options, labels, value, iconFor) {
  * @returns {{ element: HTMLElement, input: HTMLInputElement, refresh: () => void }}
  */
 export function doseStepper(value, currentForm) {
-  const input = /** @type {HTMLInputElement} */ (el('input', {
-    attrs: { name: 'dose_qty', type: 'number', min: 0.5, max: 20, step: 0.5, inputmode: 'decimal', value, 'aria-label': 'Dose each time' },
-  }));
+  const input = /** @type {HTMLInputElement} */ (
+    el('input', {
+      attrs: {
+        name: 'dose_qty',
+        type: 'number',
+        min: 0.5,
+        max: 20,
+        step: 0.5,
+        inputmode: 'decimal',
+        value,
+        'aria-label': 'Dose each time',
+      },
+    })
+  );
   const unitEl = el('span', { className: 'stepper__unit' });
   const refresh = () => {
     const unit = FORM_UNIT[currentForm()] ?? 'dose';
@@ -92,9 +109,26 @@ export function doseStepper(value, currentForm) {
  * @param {string} value
  */
 export function colourPicker(colours, value) {
-  return fieldset('Colour', el('div', { className: 'swatches', attrs: { role: 'radiogroup' } }, colours.map((c) => el('label', { className: tintClass(c), attrs: { title: c } }, [
-    el('input', { attrs: { type: 'radio', name: 'color', value: c, checked: c === value, 'aria-label': c[0].toUpperCase() + c.slice(1) } }),
-  ]))));
+  return fieldset(
+    'Colour',
+    el(
+      'div',
+      { className: 'swatches', attrs: { role: 'radiogroup' } },
+      colours.map((c) =>
+        el('label', { className: tintClass(c), attrs: { title: c } }, [
+          el('input', {
+            attrs: {
+              type: 'radio',
+              name: 'color',
+              value: c,
+              checked: c === value,
+              'aria-label': c[0].toUpperCase() + c.slice(1),
+            },
+          }),
+        ]),
+      ),
+    ),
+  );
 }
 
 /**
@@ -102,9 +136,19 @@ export function colourPicker(colours, value) {
  * @param {number[]} value
  */
 export function dayPicker(value) {
-  return fieldset('Days', el('div', { className: 'days' }, DAY_NAMES.map((d, i) => el('label', {}, [
-    el('input', { attrs: { type: 'checkbox', name: 'days', value: i, checked: value.includes(i) } }), d,
-  ]))));
+  return fieldset(
+    'Days',
+    el(
+      'div',
+      { className: 'days' },
+      DAY_NAMES.map((d, i) =>
+        el('label', {}, [
+          el('input', { attrs: { type: 'checkbox', name: 'days', value: i, checked: value.includes(i) } }),
+          d,
+        ]),
+      ),
+    ),
+  );
 }
 
 /**
@@ -117,18 +161,35 @@ export function photoPicker(initial) {
   let photo = initial ?? null;
   const element = el('div', { className: 'photo-field' });
   function render() {
-    const fileIn = el('input', { attrs: { type: 'file', accept: 'image/*', capture: 'environment', 'aria-label': 'Add a photo of the medicine' } });
+    const fileIn = el('input', {
+      attrs: { type: 'file', accept: 'image/*', capture: 'environment', 'aria-label': 'Add a photo of the medicine' },
+    });
     fileIn.addEventListener('change', async () => {
       const file = fileIn.files?.[0];
       if (!file) return;
-      try { photo = await makeThumbnail(file); render(); } catch (err) { showBanner('error', err.message); }
+      try {
+        photo = await makeThumbnail(file);
+        render();
+      } catch (err) {
+        showBanner('error', err.message);
+      }
     });
     if (photo) {
       element.replaceChildren(
         photoImg(photo, 'Photo of the medicine', 'med-photo med-photo--lg'),
         el('div', { className: 'btn-row' }, [
           el('span', { className: 'btn btn--ghost btn--sm file-btn' }, ['Change', fileIn]),
-          el('button', { className: 'btn btn--danger btn--sm', text: 'Remove', attrs: { type: 'button' }, on: { click: () => { photo = null; render(); } } }),
+          el('button', {
+            className: 'btn btn--danger btn--sm',
+            text: 'Remove',
+            attrs: { type: 'button' },
+            on: {
+              click: () => {
+                photo = null;
+                render();
+              },
+            },
+          }),
         ]),
       );
     } else {
@@ -139,5 +200,10 @@ export function photoPicker(initial) {
     }
   }
   render();
-  return { element, get value() { return photo; } };
+  return {
+    element,
+    get value() {
+      return photo;
+    },
+  };
 }

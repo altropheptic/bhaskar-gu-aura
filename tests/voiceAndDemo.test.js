@@ -9,19 +9,31 @@ import { validateMedicine } from '../js/medSchema.js';
 
 describe('reminderText', () => {
   it('builds an English sentence with the place cue', () => {
-    const text = reminderText({ lang: 'en', person: 'Dadi', medicines: [{ name: 'Metformin', qty: 1, form: 'tablet', meal: 'after', place: 'the steel dabba' }] });
-    expect(text).toBe('Dadi, it is time for your medicine. 1 tablet of Metformin, after food. It is kept at the steel dabba.');
+    const text = reminderText({
+      lang: 'en',
+      person: 'Dadi',
+      medicines: [{ name: 'Metformin', qty: 1, form: 'tablet', meal: 'after', place: 'the steel dabba' }],
+    });
+    expect(text).toBe(
+      'Dadi, it is time for your medicine. 1 tablet of Metformin, after food. It is kept at the steel dabba.',
+    );
   });
 
   it('speaks Hindi and says "half" for half tablets', () => {
-    const text = reminderText({ lang: 'hi', person: 'दादी', medicines: [{ name: 'Thyronorm', qty: 0.5, form: 'tablet', meal: 'before' }] });
+    const text = reminderText({
+      lang: 'hi',
+      person: 'दादी',
+      medicines: [{ name: 'Thyronorm', qty: 0.5, form: 'tablet', meal: 'before' }],
+    });
     expect(text).toContain('दवाई का समय हो गया है');
     expect(text).toContain('आधी गोली');
     expect(text).toContain('खाने से पहले');
   });
 
   it('falls back to English for an unknown language', () => {
-    expect(reminderText({ lang: 'xx', person: '', medicines: [{ name: 'A', qty: 2, form: 'capsule', meal: 'any' }] })).toBe('it is time for your medicine. 2 capsules of A.');
+    expect(
+      reminderText({ lang: 'xx', person: '', medicines: [{ name: 'A', qty: 2, form: 'capsule', meal: 'any' }] }),
+    ).toBe('it is time for your medicine. 2 capsules of A.');
   });
 });
 

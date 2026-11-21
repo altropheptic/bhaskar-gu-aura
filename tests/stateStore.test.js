@@ -14,8 +14,9 @@ import { dosesForDay, doseStatus } from '../js/schedule.js';
 /** A dose of `name` today that has not been logged yet. */
 function openDose(name) {
   const now = new Date();
-  return dosesForDay(state.medicines, now)
-    .find((d) => d.med.name === name && !['taken', 'skipped'].includes(doseStatus(d, state.logIndex, now)));
+  return dosesForDay(state.medicines, now).find(
+    (d) => d.med.name === name && !['taken', 'skipped'].includes(doseStatus(d, state.logIndex, now)),
+  );
 }
 
 beforeEach(async () => {
@@ -79,9 +80,26 @@ describe('routine changes', () => {
 describe('saving medicines', () => {
   it('adds a medicine to the selected person and persists it on this device', async () => {
     await saveMedicine({
-      name: 'Vitamin C', generic_name: '', dosage: '500 mg', form: 'tablet', color: 'orange', shape: 'round', meal: 'any',
-      times: ['10:00'], slots: ['custom'], days: [0, 1, 2, 3, 4, 5, 6], dose_qty: 1, stock: null, refill_at: 5,
-      start_date: '2026-11-21', end_date: null, active: true, notes: '', kept_at: '', doctor: '', photo: null,
+      name: 'Vitamin C',
+      generic_name: '',
+      dosage: '500 mg',
+      form: 'tablet',
+      color: 'orange',
+      shape: 'round',
+      meal: 'any',
+      times: ['10:00'],
+      slots: ['custom'],
+      days: [0, 1, 2, 3, 4, 5, 6],
+      dose_qty: 1,
+      stock: null,
+      refill_at: 5,
+      start_date: '2026-11-21',
+      end_date: null,
+      active: true,
+      notes: '',
+      kept_at: '',
+      doctor: '',
+      photo: null,
     });
     expect(state.medicines.some((m) => m.name === 'Vitamin C')).toBe(true);
     const saved = JSON.parse(localStorage.getItem(LOCAL_KEY));

@@ -28,7 +28,13 @@ function validate(body) {
   for (const m of body.medicines) {
     const name = typeof m?.name === 'string' ? m.name.trim() : '';
     const qty = Number(m?.qty);
-    if (!SAFE_NAME.test(name) || !(qty >= 0.5 && qty <= 20) || !VOICE_FORMS.includes(m.form) || !VOICE_MEALS.includes(m.meal)) return null;
+    if (
+      !SAFE_NAME.test(name) ||
+      !(qty >= 0.5 && qty <= 20) ||
+      !VOICE_FORMS.includes(m.form) ||
+      !VOICE_MEALS.includes(m.meal)
+    )
+      return null;
     const place = typeof m.place === 'string' ? m.place.trim() : '';
     if (place && !SAFE_NAME.test(place)) return null;
     medicines.push({ name, qty, form: m.form, meal: m.meal, ...(place ? { place } : {}) });
@@ -49,12 +55,19 @@ export async function POST(request) {
   if (!key) return json({ error: 'Voice is not available.' }, 503);
 
   try {
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(VOICE_ID)}?output_format=mp3_44100_64`, {
-      method: 'POST',
-      headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-      body: JSON.stringify({ text: reminderText(clean), model_id: MODEL_ID, voice_settings: { stability: 0.6, similarity_boost: 0.75 } }),
-      signal: AbortSignal.timeout(15_000),
-    });
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(VOICE_ID)}?output_format=mp3_44100_64`,
+      {
+        method: 'POST',
+        headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+        body: JSON.stringify({
+          text: reminderText(clean),
+          model_id: MODEL_ID,
+          voice_settings: { stability: 0.6, similarity_boost: 0.75 },
+        }),
+        signal: AbortSignal.timeout(15_000),
+      },
+    );
     if (!res.ok) {
       console.error('[api/tts] ElevenLabs HTTP', res.status, (await res.text().catch(() => '')).slice(0, 300));
       return json({ error: 'Voice is not available.' }, 503);

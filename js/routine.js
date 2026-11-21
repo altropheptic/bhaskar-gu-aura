@@ -14,15 +14,37 @@
  */
 
 export const SLOTS = ['wake', 'breakfast', 'lunch', 'dinner', 'bed'];
-export const SLOT_LABEL = { wake: 'Wake up', breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', bed: 'Bedtime', custom: 'Custom' };
-export const ROUTINE_FIELDS = { wake: 'wake_time', breakfast: 'breakfast_time', lunch: 'lunch_time', dinner: 'dinner_time', bed: 'bed_time' };
-export const DEFAULT_ROUTINE = { wake_time: '07:00', breakfast_time: '08:30', lunch_time: '13:30', dinner_time: '20:30', bed_time: '22:00' };
+export const SLOT_LABEL = {
+  wake: 'Wake up',
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  bed: 'Bedtime',
+  custom: 'Custom',
+};
+export const ROUTINE_FIELDS = {
+  wake: 'wake_time',
+  breakfast: 'breakfast_time',
+  lunch: 'lunch_time',
+  dinner: 'dinner_time',
+  bed: 'bed_time',
+};
+export const DEFAULT_ROUTINE = {
+  wake_time: '07:00',
+  breakfast_time: '08:30',
+  lunch_time: '13:30',
+  dinner_time: '20:30',
+  bed_time: '22:00',
+};
 
 /** Meal slots shift with food timing; wake/bed don't. */
 const MEAL_SLOTS = new Set(['breakfast', 'lunch', 'dinner']);
 const MEAL_OFFSET_MIN = { before: -30, with: 0, after: 15, any: 0 };
 
-const toMin = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
+const toMin = (hhmm) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+};
 const toHHMM = (min) => {
   const m = ((min % 1440) + 1440) % 1440;
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;

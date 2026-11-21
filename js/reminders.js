@@ -28,15 +28,26 @@ let chimeTimer = 0;
 let timer = 0;
 
 function loadFired() {
-  try { fired = new Set(JSON.parse(sessionStorage.getItem(firedKey()) ?? '[]')); } catch { fired = new Set(); }
+  try {
+    fired = new Set(JSON.parse(sessionStorage.getItem(firedKey()) ?? '[]'));
+  } catch {
+    fired = new Set();
+  }
 }
 function saveFired() {
-  try { sessionStorage.setItem(firedKey(), JSON.stringify([...fired])); } catch { /* ignore */ }
+  try {
+    sessionStorage.setItem(firedKey(), JSON.stringify([...fired]));
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Browsers only allow sound after a user gesture, so unlock audio on the first tap. */
 function unlockAudio() {
-  if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
+  if (audioCtx) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return;
+  }
   const Ctx = window.AudioContext || window.webkitAudioContext;
   if (Ctx) audioCtx = new Ctx();
 }
@@ -73,55 +84,92 @@ async function notify(profile, doses) {
   const body = `${profile?.name ?? ''} · ${formatTime(doses[0].time)} · ${MEAL_LABEL[doses[0].med.meal] ?? ''}`.trim();
   try {
     const reg = await navigator.serviceWorker?.getRegistration();
-    if (reg) await reg.showNotification(title, { body, icon: '/icon-192.png', tag: doses[0].key, requireInteraction: true });
+    if (reg)
+      await reg.showNotification(title, { body, icon: '/icon-192.png', tag: doses[0].key, requireInteraction: true });
     else new Notification(title, { body, icon: '/icon-192.png', tag: doses[0].key });
-  } catch { /* notifications blocked */ }
+  } catch {
+    /* notifications blocked */
+  }
 }
 
 /** Open the alarm dialog for a group of doses that are due at the same time. */
 function ring(doses) {
   const dialog = /** @type {HTMLDialogElement} */ (document.getElementById('alarm-dialog'));
   const profile = currentProfile();
-  const close = () => { stopChime(); dialog.close(); };
+  const close = () => {
+    stopChime();
+    dialog.close();
+  };
 
-  const takeAll = el('button', { className: 'btn btn--primary btn--xl btn--block', attrs: { type: 'button' } }, [icon('check'), doses.length > 1 ? 'I took them all' : 'I took it']);
+  const takeAll = el('button', { className: 'btn btn--primary btn--xl btn--block', attrs: { type: 'button' } }, [
+    icon('check'),
+    doses.length > 1 ? 'I took them all' : 'I took it',
+  ]);
   takeAll.addEventListener('click', async () => {
     takeAll.disabled = true;
     for (const d of doses) await takeOrSkip(d, 'taken');
     close();
   });
-  const snooze = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('clock'), `${SNOOZE_MIN} min`]);
+  const snooze = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [
+    icon('clock'),
+    `${SNOOZE_MIN} min`,
+  ]);
   snooze.addEventListener('click', () => {
-    for (const d of doses) { snoozed.set(d.key, Date.now() + SNOOZE_MIN * 60_000); fired.delete(d.key); }
+    for (const d of doses) {
+      snoozed.set(d.key, Date.now() + SNOOZE_MIN * 60_000);
+      fired.delete(d.key);
+    }
     saveFired();
     close();
   });
   const again = el('button', { className: 'btn btn--outline', attrs: { type: 'button' } }, [icon('speaker'), 'Repeat']);
-  again.addEventListener('click', () => speakReminder(profile, doses.map((d) => d.med), again, { force: true }));
+  again.addEventListener('click', () =>
+    speakReminder(
+      profile,
+      doses.map((d) => d.med),
+      again,
+      { force: true },
+    ),
+  );
 
-  dialog.replaceChildren(el('div', { className: 'dialog__inner' }, [
-    el('div', { className: 'alarm__ring' }, [icon('bell')]),
-    el('h2', { text: `${profile?.name ?? ''}, it's medicine time`.replace(/^, /, ''), attrs: { id: 'alarm-title' } }),
-    el('p', { className: 'muted', text: formatTime(doses[0].time) }),
-    el('ul', { className: 'alarm__meds' }, doses.map((d) => el('li', {}, [
-      medMedia(d.med, 'med-media--lg'),
-      el('div', {}, [
-        el('strong', { text: [d.med.name, d.med.dosage].filter(Boolean).join(' ') }),
-        el('div', { className: 'muted', text: `${doseLabel(d.med)} · ${MEAL_LABEL[d.med.meal] ?? ''}` }),
-        d.med.kept_at && el('div', { className: 'tile__place' }, [icon('pin'), d.med.kept_at]),
-      ]),
-    ]))),
-    takeAll,
-    el('div', { className: 'alarm__row' }, [snooze, again]),
-  ]));
+  dialog.replaceChildren(
+    el('div', { className: 'dialog__inner' }, [
+      el('div', { className: 'alarm__ring' }, [icon('bell')]),
+      el('h2', { text: `${profile?.name ?? ''}, it's medicine time`.replace(/^, /, ''), attrs: { id: 'alarm-title' } }),
+      el('p', { className: 'muted', text: formatTime(doses[0].time) }),
+      el(
+        'ul',
+        { className: 'alarm__meds' },
+        doses.map((d) =>
+          el('li', {}, [
+            medMedia(d.med, 'med-media--lg'),
+            el('div', {}, [
+              el('strong', { text: [d.med.name, d.med.dosage].filter(Boolean).join(' ') }),
+              el('div', { className: 'muted', text: `${doseLabel(d.med)} · ${MEAL_LABEL[d.med.meal] ?? ''}` }),
+              d.med.kept_at && el('div', { className: 'tile__place' }, [icon('pin'), d.med.kept_at]),
+            ]),
+          ]),
+        ),
+      ),
+      takeAll,
+      el('div', { className: 'alarm__row' }, [snooze, again]),
+    ]),
+  );
   dialog.addEventListener('close', stopChime, { once: true });
   if (!dialog.open) dialog.showModal();
 
   chime();
   stopChime();
   let count = 0;
-  chimeTimer = window.setInterval(() => { count += 1; if (count > 5) stopChime(); else chime(); }, 7000);
-  speakReminder(profile, doses.map((d) => d.med));
+  chimeTimer = window.setInterval(() => {
+    count += 1;
+    if (count > 5) stopChime();
+    else chime();
+  }, 7000);
+  speakReminder(
+    profile,
+    doses.map((d) => d.med),
+  );
   notify(profile, doses);
 }
 
@@ -152,7 +200,9 @@ export function startReminders() {
   loadFired();
   document.addEventListener('pointerdown', unlockAudio, { once: true });
   document.addEventListener('keydown', unlockAudio, { once: true });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) tick();
+  });
   timer = window.setInterval(tick, 20_000);
   setTimeout(tick, 1500);
 }

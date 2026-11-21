@@ -19,13 +19,22 @@ import { field, fieldset, seg, doseStepper, colourPicker, dayPicker, photoPicker
 import { quickAddSection } from './quickAdd.js';
 import { newMedicine, customTimesOf, formToMedicine } from './medFormData.js';
 
-const FORM_LABEL = { tablet: 'Tablet', capsule: 'Capsule', syrup: 'Syrup / liquid', injection: 'Injection', drops: 'Drops', inhaler: 'Inhaler', other: 'Other' };
+const FORM_LABEL = {
+  tablet: 'Tablet',
+  capsule: 'Capsule',
+  syrup: 'Syrup / liquid',
+  injection: 'Injection',
+  drops: 'Drops',
+  inhaler: 'Inhaler',
+  other: 'Other',
+};
 const SHAPE_LABEL = { round: 'Round', oval: 'Oval', capsule: 'Capsule', liquid: 'Liquid', other: 'Other' };
 const MEAL_TEXT = { before: 'Before food', after: 'After food', with: 'With food', any: 'Any time' };
 const MAX_CUSTOM_TIMES = 6;
 
 /** A text input bound to a medicine field. */
-const textInput = (name, value, attrs = {}) => el('input', { attrs: { name, autocomplete: 'off', value: value ?? '', ...attrs } });
+const textInput = (name, value, attrs = {}) =>
+  el('input', { attrs: { name, autocomplete: 'off', value: value ?? '', ...attrs } });
 
 /**
  * Open the dialog. Pass a medicine to edit it, or nothing to add a new one.
@@ -34,12 +43,16 @@ const textInput = (name, value, attrs = {}) => el('input', { attrs: { name, auto
 export function openMedicineDialog(existing) {
   const dialog = /** @type {HTMLDialogElement} */ (document.getElementById('med-dialog'));
   const profile = currentProfile();
-  if (!profile) { showBanner('info', 'Add a person first.'); return; }
+  if (!profile) {
+    showBanner('info', 'Add a person first.');
+    return;
+  }
   const routine = routineOf(profile);
   const m = existing ?? newMedicine();
   const body = openDialog(dialog, existing ? `Edit ${existing.name}` : 'Add medicine', 'med-title');
   const form = /** @type {HTMLFormElement} */ (el('form', { className: 'med-form', attrs: { novalidate: true } }));
-  const checked = (name) => /** @type {HTMLInputElement | null} */ (form.querySelector(`input[name="${name}"]:checked`))?.value;
+  const checked = (name) =>
+    /** @type {HTMLInputElement | null} */ (form.querySelector(`input[name="${name}"]:checked`))?.value;
 
   /* ---------- what it is ---------- */
   const nameIn = textInput('name', m.name, { maxlength: 80, required: true });
@@ -55,25 +68,36 @@ export function openMedicineDialog(existing) {
   const mealSet = fieldset('Food', seg('meal', MEALS, MEAL_TEXT, m.meal));
   const anchored = new Set((m.slots ?? []).filter((s) => s !== 'custom'));
   const chipTimes = {};
-  const slotBox = el('div', { className: 'slot-picker' }, SLOTS.map((s) => {
-    chipTimes[s] = el('span', { className: 'slot-chip__time tabular' });
-    return el('label', { className: 'slot-chip' }, [
-      el('input', { attrs: { type: 'checkbox', name: 'slot', value: s, checked: anchored.has(s) } }),
-      el('span', { className: 'slot-chip__name', text: SLOT_LABEL[s] }),
-      chipTimes[s],
-    ]);
-  }));
+  const slotBox = el(
+    'div',
+    { className: 'slot-picker' },
+    SLOTS.map((s) => {
+      chipTimes[s] = el('span', { className: 'slot-chip__time tabular' });
+      return el('label', { className: 'slot-chip' }, [
+        el('input', { attrs: { type: 'checkbox', name: 'slot', value: s, checked: anchored.has(s) } }),
+        el('span', { className: 'slot-chip__name', text: SLOT_LABEL[s] }),
+        chipTimes[s],
+      ]);
+    }),
+  );
   const refreshChipTimes = () => {
     for (const s of SLOTS) chipTimes[s].textContent = formatTime(slotTime(s, checked('meal') ?? 'any', routine));
   };
   mealSet.addEventListener('change', refreshChipTimes);
 
   const timesBox = el('div', { className: 'times-list' });
-  const addTimeBtn = el('button', { className: 'btn btn--ghost btn--sm', attrs: { type: 'button' } }, [icon('plus'), 'Other time']);
+  const addTimeBtn = el('button', { className: 'btn btn--ghost btn--sm', attrs: { type: 'button' } }, [
+    icon('plus'),
+    'Other time',
+  ]);
   const addTimeRow = (value = '18:00') => {
     if (timesBox.querySelectorAll('input').length >= MAX_CUSTOM_TIMES) return;
     const input = el('input', { attrs: { type: 'time', value, 'aria-label': 'Other dose time' } });
-    const remove = el('button', { className: 'btn btn--ghost btn--sm', attrs: { type: 'button', 'aria-label': 'Remove this time' } }, [icon('cross')]);
+    const remove = el(
+      'button',
+      { className: 'btn btn--ghost btn--sm', attrs: { type: 'button', 'aria-label': 'Remove this time' } },
+      [icon('cross')],
+    );
     const row = el('span', { className: 'btn-row' }, [input, remove]);
     remove.addEventListener('click', () => row.remove());
     timesBox.insertBefore(row, addTimeBtn);
@@ -87,20 +111,44 @@ export function openMedicineDialog(existing) {
   const doctorIn = textInput('doctor', m.doctor, { maxlength: 60, placeholder: 'Dr. Sharma' });
   const startIn = el('input', { attrs: { name: 'start_date', type: 'date', value: m.start_date } });
   const endIn = el('input', { attrs: { name: 'end_date', type: 'date', value: m.end_date ?? '' } });
-  const stockIn = el('input', { attrs: { name: 'stock', type: 'number', min: 0, max: 10000, step: 0.5, inputmode: 'decimal', placeholder: 'Optional', value: m.stock ?? '' } });
-  const refillIn = el('input', { attrs: { name: 'refill_at', type: 'number', min: 0, max: 60, step: 1, value: m.refill_at } });
+  const stockIn = el('input', {
+    attrs: {
+      name: 'stock',
+      type: 'number',
+      min: 0,
+      max: 10000,
+      step: 0.5,
+      inputmode: 'decimal',
+      placeholder: 'Optional',
+      value: m.stock ?? '',
+    },
+  });
+  const refillIn = el('input', {
+    attrs: { name: 'refill_at', type: 'number', min: 0, max: 60, step: 1, value: m.refill_at },
+  });
   const notesIn = el('textarea', { attrs: { name: 'notes', maxlength: 200, rows: 2 }, text: m.notes ?? '' });
-  const activeRow = existing && el('div', { className: 'check-row' }, [el('label', {}, [
-    el('input', { attrs: { type: 'checkbox', name: 'active', checked: m.active } }), 'Active',
-  ])]);
+  const activeRow =
+    existing &&
+    el('div', { className: 'check-row' }, [
+      el('label', {}, [el('input', { attrs: { type: 'checkbox', name: 'active', checked: m.active } }), 'Active']),
+    ]);
 
   const errorBox = el('div', { attrs: { role: 'alert', 'aria-live': 'assertive' } });
-  const saveBtn = /** @type {HTMLButtonElement} */ (el('button', { className: 'btn btn--primary btn--xl', text: existing ? 'Save changes' : 'Save medicine', attrs: { type: 'submit' } }));
+  const saveBtn = /** @type {HTMLButtonElement} */ (
+    el('button', {
+      className: 'btn btn--primary btn--xl',
+      text: existing ? 'Save changes' : 'Save medicine',
+      attrs: { type: 'submit' },
+    })
+  );
 
   form.append(
     el('div', { className: 'form-card' }, [
       el('span', { className: 'section-title', text: 'Medicine' }),
-      el('div', { className: 'med-top' }, [photo.element, el('div', {}, [field('Name', nameIn), field('Strength', dosageIn)])]),
+      el('div', { className: 'med-top' }, [
+        photo.element,
+        el('div', {}, [field('Name', nameIn), field('Strength', dosageIn)]),
+      ]),
       field('Generic (salt)', genericIn),
       fieldset('Type', formSeg),
       fieldset('Shape', shapeSeg),
@@ -117,13 +165,21 @@ export function openMedicineDialog(existing) {
       el('span', { className: 'section-title', text: 'Details' }),
       el('div', { className: 'field-grid' }, [field('Kept at', keptIn), field('Doctor', doctorIn)]),
       el('div', { className: 'field-grid' }, [field('Start date', startIn), field('End date (optional)', endIn)]),
-      el('div', { className: 'field-grid' }, [field('In stock (optional)', stockIn), field('Refill alert (days left)', refillIn)]),
+      el('div', { className: 'field-grid' }, [
+        field('In stock (optional)', stockIn),
+        field('Refill alert (days left)', refillIn),
+      ]),
       field('Notes', notesIn),
       activeRow,
     ]),
     errorBox,
     el('div', { className: 'dialog__foot' }, [
-      el('button', { className: 'btn btn--ghost', text: 'Cancel', attrs: { type: 'button' }, on: { click: () => dialog.close() } }),
+      el('button', {
+        className: 'btn btn--ghost',
+        text: 'Cancel',
+        attrs: { type: 'button' },
+        on: { click: () => dialog.close() },
+      }),
       saveBtn,
     ]),
   );
@@ -132,7 +188,9 @@ export function openMedicineDialog(existing) {
   /** Fill the form from parsed fields (AI or the offline reader). */
   function applyFields(f) {
     const setRadio = (name, value) => {
-      const input = /** @type {HTMLInputElement | null} */ (form.querySelector(`input[name="${name}"][value="${value}"]`));
+      const input = /** @type {HTMLInputElement | null} */ (
+        form.querySelector(`input[name="${name}"][value="${value}"]`)
+      );
       if (input) input.checked = true;
     };
     if (f.name) nameIn.value = f.name;
@@ -153,7 +211,9 @@ export function openMedicineDialog(existing) {
     const slots = Array.isArray(f.slots) ? f.slots : [];
     const times = Array.isArray(f.times) ? f.times : [];
     if (slots.length || times.length) {
-      form.querySelectorAll('input[name="slot"]').forEach((i) => { /** @type {HTMLInputElement} */ (i).checked = slots.includes(i.value); });
+      form.querySelectorAll('input[name="slot"]').forEach((i) => {
+        /** @type {HTMLInputElement} */ (i).checked = slots.includes(i.value);
+      });
       timesBox.querySelectorAll('.btn-row').forEach((r) => r.remove());
       if (!slots.length) times.forEach((t) => addTimeRow(t)); // AI gave clock times only
     }
@@ -168,7 +228,15 @@ export function openMedicineDialog(existing) {
     const med = formToMedicine(new FormData(form), { existing, customTimes, routine, photo: photo.value });
     const errors = validateMedicine(med);
     if (errors.length) {
-      errorBox.replaceChildren(el('div', { className: 'banner banner--error' }, [el('ul', {}, errors.map((t) => el('li', { text: t })))]));
+      errorBox.replaceChildren(
+        el('div', { className: 'banner banner--error' }, [
+          el(
+            'ul',
+            {},
+            errors.map((t) => el('li', { text: t })),
+          ),
+        ]),
+      );
       errorBox.scrollIntoView({ block: 'nearest' });
       return;
     }

@@ -6,7 +6,15 @@
  * friendly sentence; a unique-constraint violation becomes DuplicateDoseError.
  */
 import { db } from './supabaseClient.js';
-import { PROFILE_COLS, MEDICINE_COLS, LOG_COLS, DuplicateDoseError, pick, normMedicine, normProfile } from './storeRows.js';
+import {
+  PROFILE_COLS,
+  MEDICINE_COLS,
+  LOG_COLS,
+  DuplicateDoseError,
+  pick,
+  normMedicine,
+  normProfile,
+} from './storeRows.js';
 
 export class CloudBackend {
   /** Throw a friendly error; details go to the console only. */
@@ -25,18 +33,38 @@ export class CloudBackend {
   async importAll({ profiles, medicines, logs }) {
     const stamp = Date.now();
     // created_at keeps the family in a stable order (Dadi first).
-    let r = await db().from('profiles').insert(profiles.map((p, i) => ({ id: p.id, created_at: new Date(stamp + i).toISOString(), ...pick(p, PROFILE_COLS) })));
+    let r = await db()
+      .from('profiles')
+      .insert(
+        profiles.map((p, i) => ({ id: p.id, created_at: new Date(stamp + i).toISOString(), ...pick(p, PROFILE_COLS) })),
+      );
     CloudBackend.check(r.error);
     try {
-      r = await db().from('medicines').insert(medicines.map((m, i) => ({ id: m.id, created_at: new Date(stamp + i).toISOString(), ...pick(m, MEDICINE_COLS) })));
+      r = await db()
+        .from('medicines')
+        .insert(
+          medicines.map((m, i) => ({
+            id: m.id,
+            created_at: new Date(stamp + i).toISOString(),
+            ...pick(m, MEDICINE_COLS),
+          })),
+        );
       CloudBackend.check(r.error);
       for (let i = 0; i < logs.length; i += 500) {
-        r = await db().from('dose_logs').insert(logs.slice(i, i + 500).map((l) => pick(l, LOG_COLS)));
+        r = await db()
+          .from('dose_logs')
+          .insert(logs.slice(i, i + 500).map((l) => pick(l, LOG_COLS)));
         CloudBackend.check(r.error);
       }
     } catch (err) {
       // Never leave a half-made family behind: removing the people cascades to the rest.
-      await db().from('profiles').delete().in('id', profiles.map((p) => p.id));
+      await db()
+        .from('profiles')
+        .delete()
+        .in(
+          'id',
+          profiles.map((p) => p.id),
+        );
       throw err;
     }
   }
@@ -49,9 +77,7 @@ export class CloudBackend {
 
   async saveProfile(p) {
     const clean = pick(p, PROFILE_COLS);
-    const query = p.id
-      ? db().from('profiles').update(clean).eq('id', p.id)
-      : db().from('profiles').insert(clean);
+    const query = p.id ? db().from('profiles').update(clean).eq('id', p.id) : db().from('profiles').insert(clean);
     const { data, error } = await query.select().single();
     CloudBackend.check(error);
     return data;
@@ -70,9 +96,7 @@ export class CloudBackend {
 
   async saveMedicine(m) {
     const clean = pick(m, MEDICINE_COLS);
-    const query = m.id
-      ? db().from('medicines').update(clean).eq('id', m.id)
-      : db().from('medicines').insert(clean);
+    const query = m.id ? db().from('medicines').update(clean).eq('id', m.id) : db().from('medicines').insert(clean);
     const { data, error } = await query.select().single();
     CloudBackend.check(error);
     return normMedicine(data);

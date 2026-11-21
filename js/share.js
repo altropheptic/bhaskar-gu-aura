@@ -34,7 +34,9 @@ export function shareOnWhatsApp(text) {
 
 function base64url(bytes) {
   let s = '';
-  bytes.forEach((b) => { s += String.fromCharCode(b); });
+  bytes.forEach((b) => {
+    s += String.fromCharCode(b);
+  });
   return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
@@ -52,6 +54,10 @@ export async function sha256Hex(text) {
  */
 export async function createCaregiverLink(profileId, label) {
   const token = base64url(crypto.getRandomValues(new Uint8Array(24)));
-  const link = await store.createLink({ profile_id: profileId, token_hash: await sha256Hex(token), label: label.slice(0, 40) });
+  const link = await store.createLink({
+    profile_id: profileId,
+    token_hash: await sha256Hex(token),
+    label: label.slice(0, 40),
+  });
   return { url: `${location.origin}/caregiver.html?t=${token}`, link };
 }

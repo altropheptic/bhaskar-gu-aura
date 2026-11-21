@@ -22,19 +22,28 @@ function printNow(children) {
   window.print();
 }
 
-const row = (cells, tag = 'td') => el('tr', {}, cells.map((c) => el(tag, { text: c })));
+const row = (cells, tag = 'td') =>
+  el(
+    'tr',
+    {},
+    cells.map((c) => el(tag, { text: c })),
+  );
 
 /** One-page adherence summary to take to the doctor. */
 export function printDoctorReport() {
   const p = currentProfile();
-  if (!p || !state.medicines.length) { showBanner('info', 'Add medicines first.'); return; }
+  if (!p || !state.medicines.length) {
+    showBanner('info', 'Add medicines first.');
+    return;
+  }
   const now = new Date();
   const adherenceByMed = new Map(perMedicine(state.medicines, state.logIndex, 30, now).map((x) => [x.med.id, x.pct]));
   const missed = [];
   for (let i = 13; i >= 0; i -= 1) {
     for (const d of dosesForDay(state.medicines, addDays(startOfDay(now), -i))) {
       const s = doseStatus(d, state.logIndex, now);
-      if (s === 'missed' || s === 'skipped') missed.push([d.at.toLocaleDateString(), formatTime(d.time), d.med.name, s]);
+      if (s === 'missed' || s === 'skipped')
+        missed.push([d.at.toLocaleDateString(), formatTime(d.time), d.med.name, s]);
     }
   }
   printNow([
@@ -43,15 +52,40 @@ export function printDoctorReport() {
     el('p', { text: `Conditions: ${p.conditions || 'not recorded'} · Allergies: ${p.allergies || 'not recorded'}` }),
     el('h2', { text: 'Current medicines' }),
     el('table', {}, [
-      el('thead', {}, [row(['Medicine', 'Strength', 'Contains', 'Doctor', 'Dose', 'Times', 'With food', 'Taken (30 days)'], 'th')]),
-      el('tbody', {}, state.medicines.filter((m) => m.active).map((m) => row([
-        m.name, m.dosage || '', m.generic_name || '', m.doctor || '', doseLabel(m), m.times.map(formatTime).join(', '),
-        MEAL_LABEL[m.meal] ?? '', adherenceByMed.get(m.id) === null || adherenceByMed.get(m.id) === undefined ? '–' : `${adherenceByMed.get(m.id)}%`,
-      ]))),
+      el('thead', {}, [
+        row(['Medicine', 'Strength', 'Contains', 'Doctor', 'Dose', 'Times', 'With food', 'Taken (30 days)'], 'th'),
+      ]),
+      el(
+        'tbody',
+        {},
+        state.medicines
+          .filter((m) => m.active)
+          .map((m) =>
+            row([
+              m.name,
+              m.dosage || '',
+              m.generic_name || '',
+              m.doctor || '',
+              doseLabel(m),
+              m.times.map(formatTime).join(', '),
+              MEAL_LABEL[m.meal] ?? '',
+              adherenceByMed.get(m.id) === null || adherenceByMed.get(m.id) === undefined
+                ? '–'
+                : `${adherenceByMed.get(m.id)}%`,
+            ]),
+          ),
+      ),
     ]),
     el('h2', { text: 'Missed or skipped doses (last 14 days)' }),
     missed.length
-      ? el('table', {}, [el('thead', {}, [row(['Date', 'Time', 'Medicine', 'Status'], 'th')]), el('tbody', {}, missed.map((r) => row(r)))])
+      ? el('table', {}, [
+          el('thead', {}, [row(['Date', 'Time', 'Medicine', 'Status'], 'th')]),
+          el(
+            'tbody',
+            {},
+            missed.map((r) => row(r)),
+          ),
+        ])
       : el('p', { text: 'None. Every dose was taken.' }),
     el('p', { text: 'This report is generated from what was logged in the app. It is not a medical record.' }),
   ]);
@@ -71,7 +105,13 @@ export function printEmergencyCard() {
       el('p', { text: `Emergency contact: ${p.emergency_name || '–'} ${p.emergency_phone || ''}` }),
       el('h2', { text: 'Current medicines' }),
       meds.length
-        ? el('table', {}, [el('tbody', {}, meds.map((m) => row([[m.name, m.dosage].filter(Boolean).join(' '), m.times.map(formatTime).join(', ')])))])
+        ? el('table', {}, [
+            el(
+              'tbody',
+              {},
+              meds.map((m) => row([[m.name, m.dosage].filter(Boolean).join(' '), m.times.map(formatTime).join(', ')])),
+            ),
+          ])
         : el('p', { text: 'None recorded.' }),
       el('p', { text: `Updated ${new Date().toLocaleDateString()} · Dawai Dost` }),
     ]),
